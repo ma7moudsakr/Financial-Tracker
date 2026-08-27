@@ -928,7 +928,7 @@ function procReceipt(file){
   reader.onload=async function(e){
     const b64=e.target.result.split(',')[1],mt=file.type||'image/jpeg';
     try{
-      const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:600,messages:[{role:'user',content:[{type:'image',source:{type:'base64',media_type:mt,data:b64}},{type:'text',text:`Analyze this receipt. Extract ALL monetary amounts visible. Return ONLY valid JSON no markdown:\n{"merchant":"","date":"YYYY-MM-DD","amounts":[{"label":"Subtotal","value":0},{"label":"Total","value":0}],"category":"Groceries|Transport|Housing|Phone & Internet|Travel|Family Transfer|Misc|Other","confidence":"high|medium|low"}\nIf only one amount, still return an array with one item. Use today if date not found.`}]}]})});
+      const r=await fetch('/api/receipt',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({image:b64,media_type:mt})});
       const data=await r.json();const raw=data.content?.[0]?.text||'';
       let parsed;try{parsed=JSON.parse(raw.replace(/```json|```/g,'').trim());}catch(e){throw new Error('Could not parse receipt');}
       showRResult(parsed);
@@ -962,7 +962,7 @@ async function impFile(e){
     if(file.name.endsWith('.csv')){const txt=await file.text();rawRows=txt.split('\n').filter(l=>l.trim()).map(l=>l.split(',').map(c=>c.replace(/"/g,'').trim()).join(' | '));}
     else{const buf=await file.arrayBuffer();const wb=XLSX.read(buf,{type:'array'});const ws=wb.Sheets[wb.SheetNames[0]];rawRows=XLSX.utils.sheet_to_json(ws,{header:1}).filter(r=>r.some(c=>c!=null&&String(c).trim())).map(r=>r.filter(c=>c!=null).map(c=>String(c).trim()).join(' | '));}
     if(!rawRows.length){prev.innerHTML='<div class="notice r">❌ No data found.</div>';return;}
-    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:2000,messages:[{role:'user',content:`Parse these expense entries. Each may be structured or freeform. Extract what you can.\n\nEntries:\n${rawRows.slice(0,50).join('\n')}\n\nAvailable categories: ${S.categories.map(c=>c.name).join(', ')}\n\nReturn ONLY valid JSON array no markdown:\n[{"desc":"description","amount":0,"category":"best match","date":"YYYY-MM-DD or empty","confidence":"high|medium|low"}]\n\nToday: ${today()}`}]})});
+    const r=await fetch('/api/import',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({rows:rawRows.slice(0,50),categories:S.categories.map(c=>c.name),today:today()})});
     const data=await r.json();const raw=data.content?.[0]?.text||'';
     let parsed;try{parsed=JSON.parse(raw.replace(/```json|```/g,'').trim());}catch(e){throw new Error('AI could not parse');}
     showImportPreview(parsed);
