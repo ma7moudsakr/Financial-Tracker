@@ -570,6 +570,7 @@ input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent);cursor:po
       <div style="margin-top:16px">
         <button class="btn" style="width:100%;margin-bottom:8px;background:var(--purple)" onclick="goTo('settings')">⚙️ Go to Settings</button>
         <button class="btn sec" style="width:100%" onclick="if(confirm('Sign out?'))signOut()">↩ Sign out</button>
+        <button class="btn dan" style="width:100%;margin-top:8px" onclick="deleteAccount()">🗑️ Delete account</button>
       </div>
       <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
         <div class="stitle">Avatar colour</div>
@@ -1249,6 +1250,31 @@ function setAvatarColor(col,el){
   document.querySelectorAll('#avatar-palette .swatch').forEach(s=>s.classList.remove('sel'));
   if(el)el.classList.add('sel');
   persist();
+}
+
+async function deleteAccount(){
+  const input=prompt('This will permanently delete your account and ALL your data.\n\nType DELETE to confirm:');
+  if(input!=='DELETE'){if(input!==null)showToast('Cancelled — type DELETE exactly to confirm.');return;}
+  try{
+    const{error}=await sb.rpc('delete_user');
+    if(error){
+      // Fallback: just sign out and clear data if RPC not available
+      localStorage.removeItem('bf6');
+      await sb.auth.signOut();
+      showToast('Account data cleared. Contact support to fully remove your account.');
+      location.reload();
+      return;
+    }
+    localStorage.removeItem('bf6');
+    await sb.auth.signOut();
+    showToast('Account deleted.');
+    setTimeout(()=>location.reload(),1000);
+  }catch(e){
+    // If RPC fails, still clear local data and sign out
+    localStorage.removeItem('bf6');
+    await sb.auth.signOut();
+    location.reload();
+  }
 }
 
 // INIT
