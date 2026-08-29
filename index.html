@@ -787,8 +787,23 @@ async function handleAuth(){
     let friendly='';
     if(authTab==='login'){
       if(msg.toLowerCase().includes('invalid login credentials')||msg.toLowerCase().includes('invalid')){
-        // Check if user exists by trying to resend - simpler: just show two options
-        friendly='No account found with this email, or your password is incorrect. <span style="color:var(--accent);cursor:pointer;text-decoration:underline" onclick="switchAuthTab(\'signup\')">Create an account</span> or check your password.';
+        // Try to probe if email exists by attempting signUp with a dummy password
+        // If identities is empty → email exists but password is wrong
+        // If identities has entries → email doesn't exist
+        try{
+          const probe=await sb.auth.signUp({email,password:'__probe__'+Date.now(),options:{data:{}}});
+          if(probe.data?.user&&probe.data.user.identities&&probe.data.user.identities.length===0){
+            // Email exists — wrong password
+            friendly='Wrong password for this account. <span style="color:var(--accent);cursor:pointer;text-decoration:underline" onclick="showForgotPassword()">Reset your password</span>.';
+          } else {
+            // Email not registered
+            friendly='No account found for <strong>'+email+'</strong>. <span style="color:var(--accent);cursor:pointer;text-decoration:underline" onclick="switchAuthTab(\'signup\')">Create an account</span>.';
+            // Clean up the phantom signup attempt
+            if(probe.data?.user)await sb.auth.admin?.deleteUser(probe.data.user.id).catch(()=>{});
+          }
+        }catch(probeErr){
+          friendly='No account found for <strong>'+email+'</strong>. <span style="color:var(--accent);cursor:pointer;text-decoration:underline" onclick="switchAuthTab(\'signup\')">Create an account</span>, or <span style="color:var(--accent);cursor:pointer;text-decoration:underline" onclick="showForgotPassword()">reset your password</span> if you forgot it.';
+        }
       } else if(msg.toLowerCase().includes('email not confirmed')){
         friendly='Please confirm your email first. Check your inbox for the confirmation link.';
       } else {
