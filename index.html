@@ -390,10 +390,11 @@ input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent);cursor:po
     <button class="nb" onclick="goTo('savings')"><span class="nb-ic">🎯</span>Savings Plan</button>
     <button class="nb" onclick="goTo('shared')"><span class="nb-ic">👥</span>Shared Budget</button>
     <button class="nb" onclick="goTo('data')"><span class="nb-ic">📤</span>Import &amp; Export</button>
+    <button class="nb" onclick="goTo('profile')"><span class="nb-ic">👤</span>My Profile</button>
     <button class="nb" onclick="goTo('settings')"><span class="nb-ic">⚙️</span>Settings</button>
   </nav>
   <div class="sb-foot">
-    <div class="user-pill" id="user-pill" style="display:none">
+    <div class="user-pill" id="user-pill" style="display:none;cursor:pointer" onclick="goTo('profile')" title="My Profile">
       <div class="user-avatar" id="user-av">?</div>
       <div class="user-name" id="user-nm">User</div>
       <button class="signout-btn" onclick="signOut()" title="Sign out">↩</button>
@@ -538,6 +539,49 @@ input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent);cursor:po
     <div id="impresult"></div>
   </div>
 </div>
+<!-- PROFILE -->
+<div id="page-profile" class="page">
+  <div class="ph"><div class="ph-l"><h1>My Profile</h1><p>Personalise your BudgetFlow experience.</p></div><button class="btn" onclick="saveProfile()">Save profile</button></div>
+  <div class="grid g2" style="margin-bottom:12px">
+    <div class="card">
+      <div class="stitle">Personal information</div>
+      <div style="display:flex;align-items:center;gap:16px;margin-bottom:18px">
+        <div id="prof-avatar" style="width:64px;height:64px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:800;flex-shrink:0;cursor:pointer" onclick="pickAvatarColor()" title="Click to change colour">?</div>
+        <div>
+          <div style="font-size:13px;font-weight:600;color:var(--text)" id="prof-name-display">Your Name</div>
+          <div style="font-size:12px;color:var(--text3)" id="prof-email-display">email@example.com</div>
+          <div style="font-size:11px;color:var(--accent);cursor:pointer;margin-top:3px" onclick="pickAvatarColor()">Change avatar colour</div>
+        </div>
+      </div>
+      <div class="fields f2">
+        <div class="field"><label>Display name</label><input id="p-name" placeholder="e.g. Sakr"></div>
+        <div class="field"><label>Phone number</label><input id="p-phone" placeholder="+971 50 000 0000" type="tel"></div>
+        <div class="field"><label>Profession</label><input id="p-profession" placeholder="e.g. Regional Manager"></div>
+        <div class="field"><label>Age group</label><select id="p-age"><option value="">Prefer not to say</option><option>18–24</option><option>25–34</option><option>35–44</option><option>45–54</option><option>55+</option></select></div>
+        <div class="field"><label>Country</label><input id="p-country" placeholder="e.g. UAE"></div>
+        <div class="field"><label>Currency</label><select id="p-currency"><option>AED</option><option>USD</option><option>EUR</option><option>GBP</option><option>EGP</option><option>SAR</option><option>QAR</option><option>KWD</option></select></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="stitle">Account</div>
+      <div class="list-line"><span class="lname">Email</span><span id="prof-email-pill" style="font-size:12px;color:var(--text2)"></span></div>
+      <div class="list-line"><span class="lname">Plan</span><span class="pbadge paid" style="font-size:11px">Free</span></div>
+      <div class="list-line"><span class="lname">Member since</span><span style="font-size:12px;color:var(--text2)" id="prof-since"></span></div>
+      <div style="margin-top:16px">
+        <button class="btn" style="width:100%;margin-bottom:8px;background:var(--purple)" onclick="goTo('settings')">⚙️ Go to Settings</button>
+        <button class="btn sec" style="width:100%" onclick="if(confirm('Sign out?'))signOut()">↩ Sign out</button>
+      </div>
+      <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
+        <div class="stitle">Avatar colour</div>
+        <div class="palette" id="avatar-palette" style="margin-top:6px"></div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="stitle">Your stats</div>
+    <div class="grid g4" id="prof-stats"></div>
+  </div>
+</div>
 <!-- SETTINGS -->
 <div id="page-settings" class="page">
   <div class="ph"><div class="ph-l"><h1>Settings</h1></div><button class="btn" onclick="applySettings()">Save settings</button></div>
@@ -649,25 +693,53 @@ function switchAuthTab(tab){
   document.getElementById('auth-err').style.display='none';
   document.getElementById('auth-msg').textContent='';
 }
+function showConfirmScreen(email){
+  var box=document.querySelector('.auth-box');
+  if(!box)return;
+  box.innerHTML=[
+    '<div style="text-align:center;padding:20px 0">',
+    '<div style="font-size:48px;margin-bottom:16px">&#x2709;&#xFE0F;</div>',
+    '<div style="font-size:22px;font-weight:800;color:var(--accent);margin-bottom:8px">BudgetFlow</div>',
+    '<h3 style="font-size:17px;font-weight:700;margin-bottom:10px;color:var(--text)">Check your email</h3>',
+    '<p style="font-size:13px;color:var(--text2);line-height:1.8;margin-bottom:20px">',
+    'We sent a confirmation link to<br>',
+    '<strong style="color:var(--text)">'+email+'</strong><br><br>',
+    'Click the link to activate your account,<br>then come back here to sign in.',
+    '</p>',
+    '<button class="auth-btn" onclick="location.reload()">Back to sign in</button>',
+    '</div>'
+  ].join('');
+}
 async function handleAuth(){
   const email=document.getElementById('auth-email').value.trim();
   const pwd=document.getElementById('auth-password').value;
   const name=document.getElementById('auth-name').value.trim();
   const errEl=document.getElementById('auth-err');errEl.style.display='none';
-  if(!email||!pwd){errEl.textContent='Please enter email and password.';errEl.style.display='block';return;}
+  const btn=document.getElementById('auth-submit');
+  if(!email||!pwd){errEl.textContent='Please enter your email and password.';errEl.style.display='block';return;}
+  btn.textContent='Please wait...';btn.disabled=true;
   try{
     let result;
     if(authTab==='signup'){
-      if(!name){errEl.textContent='Please enter your name.';errEl.style.display='block';return;}
+      if(!name){errEl.textContent='Please enter your name.';errEl.style.display='block';btn.textContent='Create account';btn.disabled=false;return;}
       result=await sb.auth.signUp({email,password:pwd,options:{data:{name}}});
       if(result.error)throw result.error;
-      document.getElementById('auth-msg').textContent='Check your email to confirm your account, then sign in.';
+      // Clear form and show confirmation screen
+      document.getElementById('auth-email').value='';
+      document.getElementById('auth-password').value='';
+      document.getElementById('auth-name').value='';
+      showConfirmScreen(email);
     }else{
       result=await sb.auth.signInWithPassword({email,password:pwd});
       if(result.error)throw result.error;
       onSignIn(result.data.user);
     }
-  }catch(e){errEl.textContent=e.message||'Something went wrong.';errEl.style.display='block';}
+  }catch(e){
+    errEl.textContent=e.message||'Something went wrong. Please try again.';
+    errEl.style.display='block';
+    btn.textContent=authTab==='login'?'Sign in':'Create account';
+    btn.disabled=false;
+  }
 }
 async function signInGoogle(){const{error}=await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:window.location.origin}});if(error)showToast('Google sign-in failed: '+error.message);}
 async function signOut(){await sb.auth.signOut();currentUser=null;document.getElementById('auth-screen').style.display='flex';document.getElementById('user-pill').style.display='none';}
@@ -693,7 +765,7 @@ function goTo(pg){
   document.querySelectorAll('.nb,.mnb').forEach(n=>n.classList.remove('on'));
   document.getElementById('page-'+pg).classList.add('on');
   document.querySelectorAll('.nb,.mnb').forEach(n=>{if(n.textContent.trim().toLowerCase().replace(/[^a-z]/g,'').startsWith(pg.slice(0,5)))n.classList.add('on');});
-  const titles={dashboard:'Dashboard',expenses:'Expenses',weekly:'Weekly',planner:'Planner',savings:'Savings',shared:'Shared',data:'Export',settings:'Settings'};
+  const titles={dashboard:'Dashboard',expenses:'Expenses',weekly:'Weekly',planner:'Planner',savings:'Savings',shared:'Shared',data:'Export',settings:'Settings',profile:'My Profile'};
   document.getElementById('mob-title').textContent=titles[pg]||'BudgetFlow';
   renderAll();
 }
@@ -815,7 +887,7 @@ function nextTour(){tourStep++;showTourStep();}
 function endTour(){document.getElementById('tour-overlay').style.display='none';document.querySelector('.tour-box')?.remove();S.tourDone=true;persist();goTo('dashboard');}
 
 // RENDER
-function renderAll(){rSB();rDash();rExpenses();rWeekly();rPlanner();rSavings();rShared();rSettings();}
+function renderAll(){rSB();rDash();rExpenses();rWeekly();rPlanner();rSavings();rShared();rSettings();rProfile();}
 function rSB(){const s=cStart(),e=cEnd();const el=document.getElementById('cpill');if(el)el.textContent='Day '+dOfC()+' · '+s.toLocaleDateString('en',{day:'numeric',month:'short'})+' – '+e.toLocaleDateString('en',{day:'numeric',month:'short'})+' · '+dLeft()+' days left';}
 
 function rDash(){
@@ -1128,6 +1200,56 @@ async function expImg(){
 }
 function dl(name,type,content){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([content],{type}));a.download=name;a.click();}
 function impJSON(e){const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=function(ev){try{S={...JSON.parse(JSON.stringify(DEF)),...JSON.parse(ev.target.result)};persist();renderAll();showToast('Backup restored');}catch(e){showToast('Invalid backup file.');}};reader.readAsText(file);}
+
+// PROFILE
+function saveProfile(){
+  S.name=document.getElementById('p-name').value.trim()||S.name;
+  S.currency=document.getElementById('p-currency').value;
+  if(!S.profile)S.profile={};
+  S.profile.phone=document.getElementById('p-phone').value.trim();
+  S.profile.profession=document.getElementById('p-profession').value.trim();
+  S.profile.age=document.getElementById('p-age').value;
+  S.profile.country=document.getElementById('p-country').value.trim();
+  // sync currency to settings
+  const sc=document.getElementById('s-currency');if(sc)sc.value=S.currency;
+  persist(true);renderAll();
+}
+function pickAvatarColor(){document.getElementById('avatar-palette')?.scrollIntoView({behavior:'smooth'});}
+function rProfile(){
+  if(!currentUser)return;
+  const name=S.name||currentUser.user_metadata?.name||'User';
+  const email=currentUser.email||'';
+  const since=currentUser.created_at?new Date(currentUser.created_at).toLocaleDateString('en',{month:'long',year:'numeric'}):'';
+  const av=document.getElementById('prof-avatar');
+  if(av){av.textContent=name.charAt(0).toUpperCase();av.style.background=S.profile?.avatarColor||'var(--accent)';}
+  const nd=document.getElementById('prof-name-display');if(nd)nd.textContent=name;
+  const ed=document.getElementById('prof-email-display');if(ed)ed.textContent=email;
+  const ep=document.getElementById('prof-email-pill');if(ep)ep.textContent=email;
+  const si=document.getElementById('prof-since');if(si)si.textContent=since;
+  const pn=document.getElementById('p-name');if(pn)pn.value=S.name||'';
+  const pc=document.getElementById('p-currency');if(pc)pc.value=S.currency||'AED';
+  const pp=document.getElementById('p-phone');if(pp)pp.value=S.profile?.phone||'';
+  const ppr=document.getElementById('p-profession');if(ppr)ppr.value=S.profile?.profession||'';
+  const pa=document.getElementById('p-age');if(pa)pa.value=S.profile?.age||'';
+  const pco=document.getElementById('p-country');if(pco)pco.value=S.profile?.country||'';
+  // avatar palette
+  const pal=document.getElementById('avatar-palette');
+  if(pal)pal.innerHTML=PRESETS.map(function(col){var sel=(S.profile?.avatarColor||'#5b7fe8')===col?'sel':'';return '<div class="swatch '+sel+'" style="background:'+col+'" onclick="setAvatarColor(\''+col+'\',this)"></div>';}).join('');
+  // stats
+  const st=document.getElementById('prof-stats');
+  if(st)st.innerHTML=
+    '<div class="card kpi"><label>Transactions</label><b class="blue">'+S.transactions.length+'</b><small>all time</small></div>'+
+    '<div class="card kpi"><label>Total logged</label><b class="purp">'+fmt(S.transactions.reduce((s,t)=>s+t.amount,0))+'</b><small>all time</small></div>'+
+    '<div class="card kpi"><label>Saved so far</label><b class="good">'+fmt(S.goal.saved)+'</b><small>toward goal</small></div>'+
+    '<div class="card kpi"><label>Categories</label><b class="blue">'+S.categories.length+'</b><small>set up</small></div>';
+}
+function setAvatarColor(col,el){
+  if(!S.profile)S.profile={};S.profile.avatarColor=col;
+  const av=document.getElementById('prof-avatar');if(av)av.style.background=col;
+  document.querySelectorAll('#avatar-palette .swatch').forEach(s=>s.classList.remove('sel'));
+  if(el)el.classList.add('sel');
+  persist();
+}
 
 // INIT
 const fdEl=document.getElementById('fdate');if(fdEl)fdEl.value=today();
