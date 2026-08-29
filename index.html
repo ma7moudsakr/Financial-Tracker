@@ -400,6 +400,7 @@ input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent);cursor:po
     <button class="nb" onclick="goTo('shared')"><span class="nb-ic">👥</span>Shared Budget</button>
     <button class="nb" onclick="goTo('data')"><span class="nb-ic">📤</span>Import &amp; Export</button>
     <button class="nb" onclick="goTo('profile')"><span class="nb-ic">👤</span>My Profile</button>
+    <button class="nb" onclick="goTo('trips')"><span class="nb-ic">✈️</span>Expense Reports</button>
     <button class="nb" onclick="goTo('upgrade')" id="upgrade-nav" style="color:var(--amber);border-left-color:var(--amber)"><span class="nb-ic">⭐</span>Go Premium</button>
     <button class="nb" onclick="goTo('settings')"><span class="nb-ic">⚙️</span>Settings</button>
   </nav>
@@ -583,6 +584,128 @@ input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent);cursor:po
     <div id="impresult"></div>
   </div>
 </div>
+<!-- TRIPS -->
+<div id="page-trips" class="page">
+  <div class="ph">
+    <div class="ph-l"><h1>✈️ Expense Reports</h1><p>Log business trip expenses and export for reimbursement.</p></div>
+    <button class="btn" onclick="showNewTripForm()">+ New trip</button>
+  </div>
+
+  <!-- New trip form -->
+  <div id="new-trip-form" class="card" style="margin-bottom:16px;display:none">
+    <div class="card-title">New expense report</div>
+    <div class="fields f2" style="margin-bottom:12px">
+      <div class="field"><label>Trip name</label><input id="t-name" placeholder="e.g. Dubai Sales Conference"></div>
+      <div class="field"><label>Destination</label><input id="t-dest" placeholder="e.g. Dubai, UAE"></div>
+      <div class="field"><label>Start date</label><input type="date" id="t-start"></div>
+      <div class="field"><label>End date</label><input type="date" id="t-end"></div>
+      <div class="field"><label>Currency</label><select id="t-currency"><option>AED</option><option>USD</option><option>EUR</option><option>GBP</option><option>EGP</option><option>SAR</option></select></div>
+      <div class="field"><label>Per diem budget (optional)</label><input type="number" id="t-perdiem" placeholder="0" min="0"></div>
+      <div class="field" style="grid-column:span 2"><label>Purpose / notes</label><input id="t-purpose" placeholder="e.g. Client meetings, training"></div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn" onclick="createTrip()">Create trip</button>
+      <button class="btn sec" onclick="document.getElementById('new-trip-form').style.display='none'">Cancel</button>
+    </div>
+  </div>
+
+  <!-- Trip list -->
+  <div id="trips-list"></div>
+
+  <!-- Trip detail -->
+  <div id="trip-detail" style="display:none">
+    <div class="card" style="margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;margin-bottom:14px">
+        <div>
+          <h2 style="font-size:18px;font-weight:800;margin-bottom:4px" id="td-name"></h2>
+          <div style="font-size:13px;color:var(--text2)" id="td-meta"></div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn sec sm" onclick="closeTripDetail()">← All trips</button>
+          <button class="btn sm" onclick="showExportOptions()" id="td-export-btn">📄 Export PDF</button>
+          <button class="btn dan sm" onclick="deleteTrip()">Delete trip</button>
+        </div>
+      </div>
+      <div class="grid g4" id="td-stats"></div>
+    </div>
+
+    <!-- Add expense to trip -->
+    <div class="card" style="margin-bottom:12px">
+      <div class="card-title">Add expense</div>
+      <div class="fields f2" style="margin-bottom:12px">
+        <div class="field" style="grid-column:span 2"><label>Description</label><input id="te-desc" placeholder="e.g. Taxi to airport"></div>
+        <div class="field"><label>Amount</label><input type="number" id="te-amt" placeholder="0" min="0" step="0.01"></div>
+        <div class="field"><label>Category</label><select id="te-cat">
+          <option value="meals">🍽️ Meals & Entertainment</option>
+          <option value="transport">🚗 Transport</option>
+          <option value="accommodation">🏨 Accommodation</option>
+          <option value="flights">✈️ Flights</option>
+          <option value="visa">📋 Visa & Entry</option>
+          <option value="communication">📱 Communication</option>
+          <option value="supplies">🗂️ Supplies</option>
+          <option value="other">📦 Other</option>
+        </select></div>
+        <div class="field"><label>Date</label><input type="date" id="te-date"></div>
+        <div class="field"><label>Notes (optional)</label><input id="te-notes" placeholder="Additional details"></div>
+        <div class="field" style="grid-column:span 2">
+          <label>Receipt photo (optional)</label>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <label class="btn sec sm" style="cursor:pointer;margin-bottom:0">📷 Attach receipt<input type="file" id="te-receipt" accept="image/*" style="display:none" onchange="previewReceipt(event)"></label>
+            <label class="btn sec sm" style="cursor:pointer;margin-bottom:0">📸 Camera<input type="file" id="te-receipt-cam" accept="image/*" capture="environment" style="display:none" onchange="previewReceipt(event)"></label>
+            <span id="te-receipt-name" style="font-size:12px;color:var(--text3)">No file selected</span>
+          </div>
+          <div id="te-receipt-preview" style="margin-top:8px"></div>
+        </div>
+      </div>
+      <button class="btn" onclick="addTripExpense()">+ Add expense</button>
+    </div>
+
+    <!-- Expense list -->
+    <div class="card">
+      <div class="card-title">Expenses <span id="td-count" style="font-size:12px;color:var(--text3);font-weight:400"></span></div>
+      <div id="td-expenses"></div>
+    </div>
+  </div>
+
+  <!-- Export modal -->
+  <div id="export-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;align-items:center;justify-content:center;padding:16px">
+    <div class="card" style="max-width:480px;width:100%;max-height:90vh;overflow-y:auto">
+      <div class="card-title">Export expense report
+        <button onclick="document.getElementById('export-modal').style.display='none'" style="background:none;border:none;font-size:18px;cursor:pointer;color:var(--text3)">✕</button>
+      </div>
+      <div class="fields" style="margin-bottom:16px">
+        <div class="field"><label>Employee name</label><input id="exp-employee" placeholder="Your full name"></div>
+        <div class="field"><label>Company name</label><input id="exp-company" placeholder="Your company"></div>
+        <div class="field"><label>Department</label><input id="exp-dept" placeholder="e.g. Sales, Operations"></div>
+        <div class="field"><label>Approved by (optional)</label><input id="exp-approver" placeholder="Manager name"></div>
+        <div class="field">
+          <label>Company logo (optional)</label>
+          <label class="btn sec sm" style="cursor:pointer;display:inline-block">Upload logo<input type="file" id="exp-logo" accept="image/*" style="display:none" onchange="previewLogo(event)"></label>
+          <div id="exp-logo-preview" style="margin-top:6px"></div>
+        </div>
+        <div class="field">
+          <label>PDF style</label>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px">
+            <div id="style-formal" onclick="selectPdfStyle('formal')" style="border:2px solid var(--accent);border-radius:var(--r-sm);padding:10px;cursor:pointer;text-align:center;background:var(--accent-dim)">
+              <div style="font-size:18px;margin-bottom:4px">📋</div>
+              <div style="font-size:12px;font-weight:700">Formal Corporate</div>
+              <div style="font-size:11px;color:var(--text3)">Traditional finance format</div>
+            </div>
+            <div id="style-modern" onclick="selectPdfStyle('modern')" style="border:2px solid var(--border);border-radius:var(--r-sm);padding:10px;cursor:pointer;text-align:center">
+              <div style="font-size:18px;margin-bottom:4px">✨</div>
+              <div style="font-size:12px;font-weight:700">Clean Modern</div>
+              <div style="font-size:11px;color:var(--text3)">Coloured, branded layout</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn" style="flex:1" onclick="exportTripPDF()">📄 Generate PDF</button>
+        <button class="btn sec" onclick="document.getElementById('export-modal').style.display='none'">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
 <!-- UPGRADE -->
 <div id="page-upgrade" class="page">
   <div class="ph"><div class="ph-l"><h1>Go Premium ⭐</h1><p>Unlock the full BudgetFlow experience.</p></div></div>
@@ -590,48 +713,56 @@ input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent);cursor:po
   <div class="grid g3" style="margin-bottom:20px" id="plan-cards">
     <div class="card" style="border:2px solid var(--border);text-align:center;padding:24px;position:relative">
       <div style="font-size:13px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Weekly</div>
-      <div style="font-size:36px;font-weight:800;color:var(--text);margin-bottom:4px">4.99 <span style="font-size:14px;color:var(--text3)">AED</span></div>
-      <div style="font-size:12px;color:var(--text3);margin-bottom:20px">per week</div>
+      <div style="font-size:36px;font-weight:800;color:var(--text);margin-bottom:2px">2.99 <span style="font-size:14px;color:var(--text3)">AED</span></div>
+      <div style="font-size:12px;color:var(--text3);margin-bottom:4px">per week</div>
+      <div style="font-size:11px;color:var(--accent);margin-bottom:16px">20 AI scans/week</div>
       <button class="btn" style="width:100%" onclick="startCheckout('price_1U9peLHQT7r6UZANbU1jRkxA')">Get Weekly</button>
     </div>
     <div class="card" style="border:2px solid var(--accent);text-align:center;padding:24px;position:relative">
       <div style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--accent);color:#fff;font-size:11px;font-weight:700;padding:3px 12px;border-radius:99px">MOST POPULAR</div>
       <div style="font-size:13px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Monthly</div>
-      <div style="font-size:36px;font-weight:800;color:var(--text);margin-bottom:4px">4.99 <span style="font-size:14px;color:var(--text3)">AED</span></div>
-      <div style="font-size:12px;color:var(--text3);margin-bottom:20px">per month · save vs weekly</div>
+      <div style="font-size:36px;font-weight:800;color:var(--text);margin-bottom:2px">4.99 <span style="font-size:14px;color:var(--text3)">AED</span></div>
+      <div style="font-size:12px;color:var(--text3);margin-bottom:4px">per month</div>
+      <div style="font-size:11px;color:var(--accent);margin-bottom:16px">50 AI scans/month</div>
       <button class="btn" style="width:100%" onclick="startCheckout('price_1U9pgjHQT7r6UZANt3XT4cYA')">Get Monthly</button>
     </div>
     <div class="card" style="border:2px solid var(--green);text-align:center;padding:24px;position:relative">
       <div style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--green);color:#fff;font-size:11px;font-weight:700;padding:3px 12px;border-radius:99px">BEST VALUE</div>
       <div style="font-size:13px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Annual</div>
-      <div style="font-size:36px;font-weight:800;color:var(--text);margin-bottom:4px">39.99 <span style="font-size:14px;color:var(--text3)">AED</span></div>
-      <div style="font-size:12px;color:var(--text3);margin-bottom:20px">per year · save 33%</div>
+      <div style="font-size:36px;font-weight:800;color:var(--text);margin-bottom:2px">39.99 <span style="font-size:14px;color:var(--text3)">AED</span></div>
+      <div style="font-size:12px;color:var(--text3);margin-bottom:4px">per year · save 33%</div>
+      <div style="font-size:11px;color:var(--green);margin-bottom:16px">100 AI scans/month</div>
       <button class="btn" style="width:100%;background:var(--green)" onclick="startCheckout('price_1U9pgjHQT7r6UZANMVThlXoM')">Get Annual</button>
     </div>
   </div>
+  <!-- Comparison table -->
   <div class="card" style="margin-bottom:16px">
-    <div class="card-title">What you get with Premium</div>
-    <div class="grid g2">
-      <div>
-        <div class="list-line"><span style="color:var(--green);margin-right:8px">✓</span><span class="lname">Unlimited AI receipt scanning</span></div>
-        <div class="list-line"><span style="color:var(--green);margin-right:8px">✓</span><span class="lname">Unlimited AI smart import</span></div>
-        <div class="list-line"><span style="color:var(--green);margin-right:8px">✓</span><span class="lname">PDF export</span></div>
-        <div class="list-line"><span style="color:var(--green);margin-right:8px">✓</span><span class="lname">Full transaction history (unlimited)</span></div>
-      </div>
-      <div>
-        <div class="list-line"><span style="color:var(--green);margin-right:8px">✓</span><span class="lname">Real-time shared budgets</span></div>
-        <div class="list-line"><span style="color:var(--green);margin-right:8px">✓</span><span class="lname">Multiple savings goals</span></div>
-        <div class="list-line"><span style="color:var(--green);margin-right:8px">✓</span><span class="lname">No ads</span></div>
-        <div class="list-line"><span style="color:var(--green);margin-right:8px">✓</span><span class="lname">Priority support</span></div>
-      </div>
+    <div class="card-title">Plan comparison</div>
+    <div class="tbl-wrap">
+      <table style="min-width:500px">
+        <thead>
+          <tr>
+            <th style="text-align:left">Feature</th>
+            <th style="text-align:center">Free</th>
+            <th style="text-align:center;color:var(--accent)">Weekly</th>
+            <th style="text-align:center;color:var(--accent)">Monthly</th>
+            <th style="text-align:center;color:var(--green)">Annual</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Price</td><td style="text-align:center">Free</td><td style="text-align:center">2.99 AED/wk</td><td style="text-align:center">4.99 AED/mo</td><td style="text-align:center;color:var(--green);font-weight:700">39.99 AED/yr</td></tr>
+          <tr><td>AI receipt scans</td><td style="text-align:center;color:var(--red)">3 lifetime</td><td style="text-align:center;color:var(--accent)">20/week</td><td style="text-align:center;color:var(--accent)">50/month</td><td style="text-align:center;color:var(--green)">100/month</td></tr>
+          <tr><td>AI smart import</td><td style="text-align:center;color:var(--red)">Shared with above</td><td style="text-align:center;color:var(--accent)">✓ Included</td><td style="text-align:center;color:var(--accent)">✓ Included</td><td style="text-align:center;color:var(--green)">✓ Included</td></tr>
+          <tr><td>PDF export</td><td style="text-align:center;color:var(--red)">✗</td><td style="text-align:center;color:var(--accent)">✓</td><td style="text-align:center;color:var(--accent)">✓</td><td style="text-align:center;color:var(--green)">✓</td></tr>
+          <tr><td>Expense report PDF</td><td style="text-align:center;color:var(--red)">✗</td><td style="text-align:center;color:var(--accent)">✓</td><td style="text-align:center;color:var(--accent)">✓</td><td style="text-align:center;color:var(--green)">✓</td></tr>
+          <tr><td>Receipt cloud storage</td><td style="text-align:center;color:var(--red)">✗ Local only</td><td style="text-align:center;color:var(--accent)">✓</td><td style="text-align:center;color:var(--accent)">✓</td><td style="text-align:center;color:var(--green)">✓</td></tr>
+          <tr><td>Shared budgets</td><td style="text-align:center;color:var(--red)">✗</td><td style="text-align:center;color:var(--accent)">✓</td><td style="text-align:center;color:var(--accent)">✓</td><td style="text-align:center;color:var(--green)">✓</td></tr>
+          <tr><td>Transaction history</td><td style="text-align:center;color:var(--amber)">3 months</td><td style="text-align:center;color:var(--accent)">Unlimited</td><td style="text-align:center;color:var(--accent)">Unlimited</td><td style="text-align:center;color:var(--green)">Unlimited</td></tr>
+          <tr><td>Savings goals</td><td style="text-align:center;color:var(--amber)">1 goal</td><td style="text-align:center;color:var(--accent)">Unlimited</td><td style="text-align:center;color:var(--accent)">Unlimited</td><td style="text-align:center;color:var(--green)">Unlimited</td></tr>
+          <tr><td>Priority support</td><td style="text-align:center;color:var(--red)">✗</td><td style="text-align:center;color:var(--accent)">✓</td><td style="text-align:center;color:var(--accent)">✓</td><td style="text-align:center;color:var(--green)">✓</td></tr>
+        </tbody>
+      </table>
     </div>
-  </div>
-  <div class="card">
-    <div class="card-title">Free tier limits</div>
-    <div class="list-line"><span style="color:var(--amber);margin-right:8px">⚠</span><span class="lname">3 AI scans per month</span></div>
-    <div class="list-line"><span style="color:var(--amber);margin-right:8px">⚠</span><span class="lname">3 months transaction history</span></div>
-    <div class="list-line"><span style="color:var(--amber);margin-right:8px">⚠</span><span class="lname">1 savings goal</span></div>
-    <div class="list-line"><span style="color:var(--amber);margin-right:8px">⚠</span><span class="lname">No PDF export</span></div>
   </div>
 </div>
 <!-- PROFILE -->
@@ -942,7 +1073,7 @@ function goTo(pg){
   document.querySelectorAll('.nb,.mnb').forEach(n=>n.classList.remove('on'));
   document.getElementById('page-'+pg).classList.add('on');
   document.querySelectorAll('.nb,.mnb').forEach(n=>{if(n.textContent.trim().toLowerCase().replace(/[^a-z]/g,'').startsWith(pg.slice(0,5)))n.classList.add('on');});
-  const titles={dashboard:'Dashboard',expenses:'Expenses',weekly:'Weekly',planner:'Planner',savings:'Savings',shared:'Shared',data:'Export',settings:'Settings',profile:'My Profile',upgrade:'Go Premium'};
+  const titles={dashboard:'Dashboard',expenses:'Expenses',weekly:'Weekly',planner:'Planner',savings:'Savings',shared:'Shared',data:'Export',settings:'Settings',profile:'My Profile',upgrade:'Go Premium',trips:'Expense Reports'};
   document.getElementById('mob-title').textContent=titles[pg]||'BudgetFlow';
   renderAll();
 }
@@ -1064,7 +1195,7 @@ function nextTour(){tourStep++;showTourStep();}
 function endTour(){document.getElementById('tour-overlay').style.display='none';document.querySelector('.tour-box')?.remove();S.tourDone=true;persist();goTo('dashboard');}
 
 // RENDER
-function renderAll(){rSB();rDash();rExpenses();rWeekly();rPlanner();rSavings();rShared();rSettings();rProfile();updateUpgradeUI();updateUpgradeNav();}
+function renderAll(){rSB();rDash();rExpenses();rWeekly();rPlanner();rSavings();rShared();rSettings();rProfile();updateUpgradeUI();updateUpgradeNav();rTrips();}
 function rSB(){const s=cStart(),e=cEnd();const el=document.getElementById('cpill');if(el)el.textContent='Day '+dOfC()+' · '+s.toLocaleDateString('en',{day:'numeric',month:'short'})+' – '+e.toLocaleDateString('en',{day:'numeric',month:'short'})+' · '+dLeft()+' days left';}
 
 function rDash(){
@@ -1549,8 +1680,14 @@ function getStripe(){
 function isPremium(){return userProfile.tier==='premium';}
 
 function aiScansLeft(){
-  if(isPremium())return 999;
+  if(isPremium()){
+    // Return limit based on plan
+    var sub=userProfile.subscription_status;
+    return 999; // tracked server side, show as generous
+  }
   var used=userProfile.ai_scans_used||0;
+  // Also check localStorage for users not logged in
+  if(!currentUser){var ls=parseInt(localStorage.getItem('bf_free_scans')||'0');used=Math.max(used,ls);}
   return Math.max(0,3-used);
 }
 
@@ -1617,13 +1754,19 @@ async function openBillingPortal(){
 
 async function trackAiScan(){
   if(isPremium())return true;
+  // Free tier: 3 lifetime scans total
   if(aiScansLeft()<=0){
-    showToast('AI scan limit reached. Upgrade to Premium for unlimited scans.');
+    showToast('You have used all 3 free AI scans. Upgrade to Premium for more.');
     goTo('upgrade');
     return false;
   }
   var newCount=(userProfile.ai_scans_used||0)+1;
-  await sb.from('profiles').update({ai_scans_used:newCount}).eq('id',currentUser.id);
+  if(currentUser){
+    await sb.from('profiles').update({ai_scans_used:newCount}).eq('id',currentUser.id);
+  } else {
+    // Store in localStorage for non-logged-in users
+    localStorage.setItem('bf_free_scans',String(newCount));
+  }
   userProfile.ai_scans_used=newCount;
   return true;
 }
@@ -1660,6 +1803,369 @@ if(window.location.search.includes('cancelled=1')){
     window.history.replaceState({},'',url);
   },500);
 }
+
+// EXPENSE REPORTS / TRIPS
+var trips = [];
+var currentTripId = null;
+var currentReceiptB64 = null;
+var selectedPdfStyle = 'formal';
+var expLogoB64 = null;
+
+const TRIP_CATS = {
+  meals:'🍽️ Meals',transport:'🚗 Transport',accommodation:'🏨 Accommodation',
+  flights:'✈️ Flights',visa:'📋 Visa & Entry',communication:'📱 Communication',
+  supplies:'🗂️ Supplies',other:'📦 Other'
+};
+
+function loadTrips(){
+  try{var t=localStorage.getItem('bf_trips');if(t)trips=JSON.parse(t);}catch(e){trips=[];}
+}
+function saveTrips(){localStorage.setItem('bf_trips',JSON.stringify(trips));}
+loadTrips();
+
+function showNewTripForm(){
+  var f=document.getElementById('new-trip-form');
+  if(f){f.style.display='';document.getElementById('t-start').value=today();document.getElementById('t-end').value=today();}
+}
+
+function createTrip(){
+  var name=document.getElementById('t-name').value.trim();
+  var dest=document.getElementById('t-dest').value.trim();
+  var start=document.getElementById('t-start').value;
+  var end=document.getElementById('t-end').value;
+  var currency=document.getElementById('t-currency').value;
+  var perdiem=parseFloat(document.getElementById('t-perdiem').value)||0;
+  var purpose=document.getElementById('t-purpose').value.trim();
+  if(!name){showToast('Please enter a trip name.');return;}
+  var trip={id:'trip'+Date.now(),name,dest,start,end,currency,perdiem,purpose,expenses:[],createdAt:today()};
+  trips.unshift(trip);saveTrips();
+  document.getElementById('new-trip-form').style.display='none';
+  ['t-name','t-dest','t-purpose'].forEach(id=>{var el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('t-perdiem').value='';
+  showToast('Trip created!');
+  rTrips();
+  openTrip(trip.id);
+}
+
+function rTrips(){
+  var list=document.getElementById('trips-list');
+  if(!list)return;
+  if(!trips.length){list.innerHTML='<div class="card"><div class="empty">No expense reports yet. Click "+ New trip" to start.</div></div>';return;}
+  list.innerHTML=trips.map(t=>{
+    var total=t.expenses.reduce((s,e)=>s+e.amt,0);
+    var days=t.start&&t.end?Math.max(1,Math.ceil((new Date(t.end)-new Date(t.start))/86400000)+1):1;
+    return '<div class="card" style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px"><div><div style="font-size:15px;font-weight:700;margin-bottom:3px">'+t.name+'</div><div style="font-size:12px;color:var(--text2)">'+t.dest+(t.start?' · '+t.start+' to '+t.end:'')+' · '+days+' day(s)</div><div style="font-size:12px;color:var(--text3);margin-top:2px">'+t.expenses.length+' expense(s)</div></div><div style="display:flex;gap:8px;align-items:center"><div style="font-size:18px;font-weight:800;color:var(--accent)">'+fmt(total)+'</div><button class="btn sm" onclick="openTrip(\''+t.id+'\')">Open</button><button class="btn dan sm" onclick="deleteTripById(\''+t.id+'\')">✕</button></div></div></div>';
+  }).join('');
+}
+
+function openTrip(id){
+  var trip=trips.find(t=>t.id===id);if(!trip)return;
+  currentTripId=id;
+  document.getElementById('trips-list').style.display='none';
+  document.getElementById('new-trip-form').style.display='none';
+  document.getElementById('trip-detail').style.display='';
+  document.getElementById('td-name').textContent=trip.name;
+  var days=trip.start&&trip.end?Math.max(1,Math.ceil((new Date(trip.end)-new Date(trip.start))/86400000)+1):1;
+  document.getElementById('td-meta').textContent=(trip.dest?trip.dest+' · ':'')+trip.start+' – '+trip.end+' · '+days+' day(s)'+(trip.purpose?' · '+trip.purpose:'');
+  document.getElementById('te-date').value=trip.start||today();
+  renderTripDetail();
+}
+
+function closeTripDetail(){
+  currentTripId=null;
+  document.getElementById('trip-detail').style.display='none';
+  document.getElementById('trips-list').style.display='';
+  currentReceiptB64=null;
+}
+
+function renderTripDetail(){
+  var trip=trips.find(t=>t.id===currentTripId);if(!trip)return;
+  var total=trip.expenses.reduce((s,e)=>s+e.amt,0);
+  var bycat={};trip.expenses.forEach(e=>{bycat[e.cat]=(bycat[e.cat]||0)+e.amt;});
+  var topCat=Object.entries(bycat).sort((a,b)=>b[1]-a[1])[0];
+  var days=trip.start&&trip.end?Math.max(1,Math.ceil((new Date(trip.end)-new Date(trip.start))/86400000)+1):1;
+  var daily=days>0?total/days:0;
+  var stats=document.getElementById('td-stats');
+  if(stats)stats.innerHTML=
+    '<div class="card kpi"><label>Total</label><b class="bad">'+fmt(total)+'</b><small>'+trip.expenses.length+' items</small></div>'+
+    '<div class="card kpi"><label>Daily avg</label><b class="blue">'+fmt(daily)+'</b><small>over '+days+' day(s)</small></div>'+
+    '<div class="card kpi"><label>Top category</label><b class="purp" style="font-size:14px">'+(topCat?TRIP_CATS[topCat[0]]||topCat[0]:'—')+'</b><small>'+(topCat?fmt(topCat[1]):'')+'</small></div>'+
+    '<div class="card kpi"><label>Receipts</label><b class="good">'+trip.expenses.filter(e=>e.receipt).length+'</b><small>of '+trip.expenses.length+'</small></div>';
+  var count=document.getElementById('td-count');
+  if(count)count.textContent='('+trip.expenses.length+')';
+  var list=document.getElementById('td-expenses');
+  if(!list)return;
+  if(!trip.expenses.length){list.innerHTML='<div class="empty">No expenses yet. Add your first one above.</div>';return;}
+  list.innerHTML=[...trip.expenses].reverse().map(e=>'<div class="txi" style="flex-wrap:wrap"><div class="txdot" style="background:var(--accent)"></div><div class="txb"><div class="txd">'+e.desc+' <span style="font-size:11px;color:var(--text3)">'+( TRIP_CATS[e.cat]||e.cat)+'</span></div><div class="txm">'+e.date+(e.notes?' · '+e.notes:'')+'</div></div>'+(e.receipt?'<img src="'+e.receipt+'" style="width:36px;height:36px;object-fit:cover;border-radius:6px;border:1px solid var(--border);cursor:pointer" onclick="viewReceipt(\''+e.id+'\')" title="View receipt">':'<span style="font-size:11px;color:var(--text3);width:36px;text-align:center">—</span>')+'<div class="txa exp">−'+fmt(e.amt)+'</div><button class="txbtn del" onclick="deleteTripExpense(\''+e.id+'\')">✕</button></div>').join('');
+}
+
+function previewReceipt(event){
+  var file=event.target.files[0];if(!file)return;
+  var reader=new FileReader();
+  reader.onload=function(ev){
+    currentReceiptB64=ev.target.result;
+    var prev=document.getElementById('te-receipt-preview');
+    var nm=document.getElementById('te-receipt-name');
+    if(prev)prev.innerHTML='<img src="'+ev.target.result+'" style="max-height:80px;border-radius:6px;border:1px solid var(--border)">';
+    if(nm)nm.textContent=file.name;
+  };
+  reader.readAsDataURL(file);
+}
+
+function addTripExpense(){
+  var trip=trips.find(t=>t.id===currentTripId);if(!trip)return;
+  var desc=document.getElementById('te-desc').value.trim();
+  var amt=parseFloat(document.getElementById('te-amt').value)||0;
+  var cat=document.getElementById('te-cat').value;
+  var date=document.getElementById('te-date').value||today();
+  var notes=document.getElementById('te-notes').value.trim();
+  if(!desc||!amt){showToast('Enter description and amount.');return;}
+  var expense={id:'exp'+Date.now(),desc,amt,cat,date,notes,receipt:currentReceiptB64||null};
+  trip.expenses.push(expense);
+  saveTrips();
+  // Clear form
+  document.getElementById('te-desc').value='';
+  document.getElementById('te-amt').value='';
+  document.getElementById('te-notes').value='';
+  document.getElementById('te-receipt-preview').innerHTML='';
+  document.getElementById('te-receipt-name').textContent='No file selected';
+  document.getElementById('te-receipt').value='';
+  document.getElementById('te-receipt-cam').value='';
+  currentReceiptB64=null;
+  showToast('Expense added');
+  renderTripDetail();
+}
+
+function deleteTripExpense(expId){
+  var trip=trips.find(t=>t.id===currentTripId);if(!trip)return;
+  trip.expenses=trip.expenses.filter(e=>e.id!==expId);
+  saveTrips();renderTripDetail();
+}
+
+function deleteTrip(){
+  if(!currentTripId)return;
+  if(!confirm('Delete this trip and all its expenses?'))return;
+  deleteTripById(currentTripId);
+  closeTripDetail();
+}
+
+function deleteTripById(id){
+  trips=trips.filter(t=>t.id!==id);saveTrips();rTrips();showToast('Trip deleted');
+}
+
+function viewReceipt(expId){
+  var trip=trips.find(t=>t.id===currentTripId);if(!trip)return;
+  var exp=trip.expenses.find(e=>e.id===expId);if(!exp||!exp.receipt)return;
+  var w=window.open('','_blank');
+  w.document.write('<img src="'+exp.receipt+'" style="max-width:100%;height:auto">');
+}
+
+function showExportOptions(){
+  if(!isPremium()){showToast('PDF export requires Premium.');goTo('upgrade');return;}
+  var modal=document.getElementById('export-modal');
+  if(modal){modal.style.display='flex';}
+  // Pre-fill employee name
+  var en=document.getElementById('exp-employee');
+  if(en&&!en.value)en.value=S.name||'';
+}
+
+function selectPdfStyle(style){
+  selectedPdfStyle=style;
+  var f=document.getElementById('style-formal');
+  var m=document.getElementById('style-modern');
+  if(style==='formal'){
+    if(f){f.style.border='2px solid var(--accent)';f.style.background='var(--accent-dim)';}
+    if(m){m.style.border='2px solid var(--border)';m.style.background='';}
+  }else{
+    if(m){m.style.border='2px solid var(--accent)';m.style.background='var(--accent-dim)';}
+    if(f){f.style.border='2px solid var(--border)';f.style.background='';}
+  }
+}
+
+function previewLogo(event){
+  var file=event.target.files[0];if(!file)return;
+  var reader=new FileReader();
+  reader.onload=function(ev){
+    expLogoB64=ev.target.result;
+    var prev=document.getElementById('exp-logo-preview');
+    if(prev)prev.innerHTML='<img src="'+ev.target.result+'" style="max-height:50px;border-radius:4px">';
+  };
+  reader.readAsDataURL(file);
+}
+
+async function exportTripPDF(){
+  var trip=trips.find(t=>t.id===currentTripId);if(!trip)return;
+  var employee=document.getElementById('exp-employee').value.trim()||S.name||'Employee';
+  var company=document.getElementById('exp-company').value.trim()||'Company';
+  var dept=document.getElementById('exp-dept').value.trim()||'';
+  var approver=document.getElementById('exp-approver').value.trim()||'';
+  var style=selectedPdfStyle;
+  var logo=expLogoB64;
+  document.getElementById('export-modal').style.display='none';
+  showToast('Generating PDF...');
+  try{
+    var{jsPDF}=window.jspdf;
+    var pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+    var pw=210,mg=16,cw=pw-mg*2;var y=mg;
+    var total=trip.expenses.reduce((s,e)=>s+e.amt,0);
+    var days=trip.start&&trip.end?Math.max(1,Math.ceil((new Date(trip.end)-new Date(trip.start))/86400000)+1):1;
+
+    if(style==='formal'){
+      // FORMAL STYLE
+      // Header bar
+      pdf.setFillColor(30,40,70);pdf.rect(0,0,pw,22,'F');
+      // Logo
+      if(logo){try{pdf.addImage(logo,'PNG',mg,3,30,16);}catch(e){}}
+      // Company name if no logo
+      else{pdf.setTextColor(255,255,255);pdf.setFontSize(14);pdf.setFont('helvetica','bold');pdf.text(company,mg,13);}
+      pdf.setTextColor(255,255,255);pdf.setFontSize(10);pdf.setFont('helvetica','bold');
+      pdf.text('EXPENSE REPORT',pw-mg,8,{align:'right'});
+      pdf.setFontSize(8);pdf.setFont('helvetica','normal');
+      pdf.text('Ref: '+trip.id.slice(-8).toUpperCase(),pw-mg,13,{align:'right'});
+      pdf.text('Date: '+today(),pw-mg,18,{align:'right'});
+      y=30;
+      // Employee details box
+      pdf.setFillColor(245,247,252);pdf.rect(mg,y,cw,28,'F');
+      pdf.setTextColor(80,90,120);pdf.setFontSize(8);pdf.setFont('helvetica','bold');
+      var cols=[[mg+3,'EMPLOYEE'],[mg+55,'DEPARTMENT'],[mg+105,'TRIP / PROJECT'],[mg+155,'APPROVED BY']];
+      cols.forEach(function(c){pdf.text(c[1],c[0],y+6);});
+      pdf.setFont('helvetica','normal');pdf.setTextColor(20,30,60);pdf.setFontSize(10);
+      pdf.text(employee,mg+3,y+14);
+      pdf.text(dept||'—',mg+55,y+14);
+      pdf.text(trip.name,mg+105,y+14);
+      pdf.text(approver||'—',mg+155,y+14);
+      pdf.setFontSize(8);pdf.setTextColor(80,90,120);pdf.setFont('helvetica','bold');
+      pdf.text('DESTINATION',mg+3,y+20);pdf.text('DATES',mg+55,y+20);pdf.text('DURATION',mg+105,y+20);pdf.text('CURRENCY',mg+155,y+20);
+      pdf.setFont('helvetica','normal');pdf.setTextColor(20,30,60);pdf.setFontSize(10);
+      pdf.text(trip.dest||'—',mg+3,y+27);
+      pdf.text((trip.start||'—')+' – '+(trip.end||'—'),mg+55,y+27);
+      pdf.text(days+' day(s)',mg+105,y+27);
+      pdf.text(trip.currency||S.currency||'AED',mg+155,y+27);
+      y+=34;
+      // Table header
+      pdf.setFillColor(30,40,70);pdf.rect(mg,y,cw,7,'F');
+      pdf.setTextColor(255,255,255);pdf.setFontSize(8);pdf.setFont('helvetica','bold');
+      pdf.text('#',mg+2,y+4.8);
+      pdf.text('DATE',mg+8,y+4.8);
+      pdf.text('CATEGORY',mg+28,y+4.8);
+      pdf.text('DESCRIPTION',mg+65,y+4.8);
+      pdf.text('RECEIPT',mg+130,y+4.8);
+      pdf.text('AMOUNT',pw-mg-2,y+4.8,{align:'right'});
+      y+=7;
+      // Expense rows
+      trip.expenses.forEach(function(e,i){
+        if(y>265){pdf.addPage();y=mg;}
+        if(i%2===0){pdf.setFillColor(248,250,254);pdf.rect(mg,y,cw,7,'F');}
+        pdf.setTextColor(40,50,80);pdf.setFontSize(8);pdf.setFont('helvetica','normal');
+        pdf.text(String(i+1),mg+2,y+4.8);
+        pdf.text(e.date,mg+8,y+4.8);
+        pdf.text((TRIP_CATS[e.cat]||e.cat).replace(/[^\x00-\x7F]/g,'').trim(),mg+28,y+4.8);
+        pdf.text((e.desc||'').slice(0,45),mg+65,y+4.8);
+        pdf.text(e.receipt?'Ref '+(i+1):'—',mg+130,y+4.8);
+        pdf.setFont('helvetica','bold');
+        pdf.text(fmt(e.amt),pw-mg-2,y+4.8,{align:'right'});
+        y+=7;
+      });
+      // Total row
+      pdf.setFillColor(220,230,255);pdf.rect(mg,y,cw,8,'F');
+      pdf.setTextColor(20,30,120);pdf.setFontSize(10);pdf.setFont('helvetica','bold');
+      pdf.text('TOTAL CLAIMED',mg+4,y+5.5);
+      pdf.text(fmt(total),pw-mg-2,y+5.5,{align:'right'});
+      y+=14;
+      // Signature lines
+      pdf.setDrawColor(180,190,210);
+      pdf.line(mg,y+10,mg+60,y+10);pdf.line(mg+70,y+10,mg+130,y+10);pdf.line(mg+140,y+10,cw+mg,y+10);
+      pdf.setTextColor(120,130,160);pdf.setFontSize(8);pdf.setFont('helvetica','normal');
+      pdf.text('Employee signature',mg,y+14);
+      pdf.text('Approved by',mg+70,y+14);
+      pdf.text('Date',mg+140,y+14);
+      y+=22;
+    }else{
+      // MODERN STYLE
+      pdf.setFillColor(91,127,232);pdf.rect(0,0,pw,18,'F');
+      if(logo){try{pdf.addImage(logo,'PNG',mg,2,24,14);}catch(e){pdf.setTextColor(255,255,255);pdf.setFontSize(14);pdf.setFont('helvetica','bold');pdf.text(company,mg,12);}}
+      else{pdf.setTextColor(255,255,255);pdf.setFontSize(14);pdf.setFont('helvetica','bold');pdf.text(company,mg,12);}
+      pdf.setTextColor(200,215,255);pdf.setFontSize(9);pdf.setFont('helvetica','normal');
+      pdf.text('Expense Report · '+trip.name,pw-mg,12,{align:'right'});
+      y=24;
+      // Summary cards
+      var cards2=[['Employee',employee],['Destination',trip.dest||'—'],['Dates',trip.start+' – '+trip.end],['Total',fmt(total)]];
+      var cw2=(cw-6)/4;
+      cards2.forEach(function(c,i){
+        var cx=mg+i*(cw2+2);
+        pdf.setFillColor(240,244,254);pdf.roundedRect(cx,y,cw2,16,2,2,'F');
+        pdf.setTextColor(120,140,180);pdf.setFontSize(7);pdf.setFont('helvetica','bold');pdf.text(c[0].toUpperCase(),cx+3,y+5);
+        pdf.setTextColor(20,40,100);pdf.setFontSize(9);pdf.setFont('helvetica','bold');pdf.text(String(c[1]).slice(0,18),cx+3,y+12);
+      });
+      y+=22;
+      // Category breakdown
+      var cats=Object.entries(bycat2(trip)).slice(0,4);
+      if(cats.length){
+        var barW=(cw-6)/Math.max(1,cats.length);
+        cats.forEach(function(c,i){
+          var cx=mg+i*(barW+2);
+          var pct2=total>0?c[1]/total:0;
+          pdf.setFillColor(91,127,232);pdf.roundedRect(cx,y,barW*pct2,6,1,1,'F');
+          pdf.setFillColor(230,235,250);pdf.roundedRect(cx+barW*pct2,y,barW*(1-pct2),6,1,1,'F');
+          pdf.setTextColor(80,90,120);pdf.setFontSize(7);pdf.setFont('helvetica','normal');
+          pdf.text((TRIP_CATS[c[0]]||c[0]).replace(/[^\x00-\x7F]/g,'').slice(0,14),cx,y+10);
+          pdf.text(fmt(c[1]),cx+barW,y+10,{align:'right'});
+        });
+        y+=16;
+      }
+      // Expense list
+      trip.expenses.forEach(function(e,i){
+        if(y>270){pdf.addPage();y=mg;}
+        pdf.setFillColor(i%2===0?245:255,i%2===0?248:255,i%2===0?255:255);
+        pdf.rect(mg,y,cw,8,'F');
+        pdf.setFillColor(91,127,232);pdf.rect(mg,y,3,8,'F');
+        pdf.setTextColor(40,50,90);pdf.setFontSize(8);pdf.setFont('helvetica','normal');
+        pdf.text(e.date,mg+5,y+5);
+        pdf.text((e.desc||'').slice(0,40),mg+25,y+5);
+        pdf.text((TRIP_CATS[e.cat]||e.cat).replace(/[^\x00-\x7F]/g,'').slice(0,16),mg+125,y+5);
+        pdf.setFont('helvetica','bold');pdf.setTextColor(180,40,40);
+        pdf.text(fmt(e.amt),pw-mg-2,y+5,{align:'right'});
+        y+=8;
+      });
+      // Total
+      pdf.setFillColor(91,127,232);pdf.rect(mg,y,cw,10,'F');
+      pdf.setTextColor(255,255,255);pdf.setFontSize(11);pdf.setFont('helvetica','bold');
+      pdf.text('TOTAL',mg+4,y+7);
+      pdf.text(fmt(total),pw-mg-2,y+7,{align:'right'});
+      y+=16;
+    }
+
+    // RECEIPT PAGES
+    var withReceipts=trip.expenses.filter(function(e){return e.receipt;});
+    if(withReceipts.length){
+      pdf.addPage();
+      pdf.setFillColor(30,40,70);pdf.rect(0,0,pw,12,'F');
+      pdf.setTextColor(255,255,255);pdf.setFontSize(11);pdf.setFont('helvetica','bold');
+      pdf.text('RECEIPTS — '+trip.name,mg,8);
+      y=18;
+      withReceipts.forEach(function(e,i){
+        if(y>220){pdf.addPage();y=mg;}
+        pdf.setFillColor(245,247,252);pdf.rect(mg,y,cw,6,'F');
+        pdf.setTextColor(40,50,80);pdf.setFontSize(8);pdf.setFont('helvetica','bold');
+        pdf.text('Receipt '+(i+1)+': '+e.desc+' — '+fmt(e.amt)+' ('+e.date+')',mg+2,y+4);
+        y+=8;
+        try{
+          var imgH=70;
+          pdf.addImage(e.receipt,'JPEG',mg,y,cw,imgH);
+          y+=imgH+8;
+        }catch(ex){
+          pdf.setTextColor(180,50,50);pdf.setFontSize(8);pdf.setFont('helvetica','normal');
+          pdf.text('[Image could not be rendered]',mg,y+5);y+=10;
+        }
+      });
+    }
+
+    pdf.save(trip.name.replace(/\s+/g,'_')+'_Expense_Report.pdf');
+    showToast('PDF exported!');
+  }catch(ex){showToast('PDF failed: '+ex.message);console.error(ex);}
+}
+
+function bycat2(trip){var r={};trip.expenses.forEach(function(e){r[e.cat]=(r[e.cat]||0)+e.amt;});return r;}
 
 // PASSWORD VISIBILITY
 function togglePwdVis(inputId,icon){
