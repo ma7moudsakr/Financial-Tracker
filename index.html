@@ -8,6 +8,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://js.stripe.com/v3/"></script>
 <style>
 :root{
   --bg:#eff3fa;--surface:#fff;--surface2:#f4f7fd;--surface3:#e8edf8;
@@ -399,12 +400,13 @@ input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent);cursor:po
     <button class="nb" onclick="goTo('shared')"><span class="nb-ic">👥</span>Shared Budget</button>
     <button class="nb" onclick="goTo('data')"><span class="nb-ic">📤</span>Import &amp; Export</button>
     <button class="nb" onclick="goTo('profile')"><span class="nb-ic">👤</span>My Profile</button>
+    <button class="nb" onclick="goTo('upgrade')" id="upgrade-nav" style="color:var(--amber);border-left-color:var(--amber)"><span class="nb-ic">⭐</span>Go Premium</button>
     <button class="nb" onclick="goTo('settings')"><span class="nb-ic">⚙️</span>Settings</button>
   </nav>
   <div class="sb-foot">
     <div class="user-pill" id="user-pill" style="display:none;cursor:pointer" onclick="goTo('profile')" title="My Profile">
       <div class="user-avatar" id="user-av">?</div>
-      <div class="user-name" id="user-nm">User</div>
+      <div style="flex:1;min-width:0"><div class="user-name" id="user-nm">User</div><div id="user-tier-badge" style="font-size:9px;font-weight:700;color:var(--amber)"></div></div>
       <button class="signout-btn" onclick="signOut()" title="Sign out">↩</button>
     </div>
     <p id="cpill"></p>
@@ -464,7 +466,7 @@ input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent);cursor:po
         <div class="rzone-top" onclick="document.getElementById('rf').click()">
           <div style="font-size:26px;margin-bottom:6px">🧾</div>
           <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:3px">Drop receipt or use buttons below</div>
-          <div style="font-size:12px;color:var(--text3)">AI reads merchant, amounts and date</div>
+          <div style="font-size:12px;color:var(--text3)" id="scan-counter-label">AI reads merchant, amounts and date</div>
         </div>
         <div class="rzone-btns">
           <button class="rzone-btn" onclick="document.getElementById('rphoto').click()">📷 Gallery</button>
@@ -513,16 +515,49 @@ input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent);cursor:po
 </div>
 <!-- SHARED -->
 <div id="page-shared" class="page">
-  <div class="ph"><div class="ph-l"><h1>Shared Budget</h1></div><button class="btn sm" onclick="addMember()">+ Add member</button></div>
-  <div class="grid g2" style="margin-bottom:12px">
-    <div class="card"><div class="card-title">Members</div><div id="member-list"></div></div>
-    <div class="card">
-      <div class="card-title">Shared savings pot</div>
-      <b style="font-size:28px;font-weight:800;display:block;margin:8px 0;color:var(--green)" id="shared-pot">0</b>
-      <div class="sync-notice">🔄 <strong>Live sync coming in the BudgetFlow app.</strong><br>Share link: <a href="https://financial-tracker-rouge-three.vercel.app" style="color:var(--accent)">financial-tracker-rouge-three.vercel.app</a><br>Currently each member uses the app independently. Export JSON backup to merge data.</div>
+  <div class="ph"><div class="ph-l"><h1>Shared Budget</h1><p>Track finances together with family or a partner.</p></div></div>
+  <div id="shared-premium-gate" style="display:none">
+    <div class="notice a" style="margin-bottom:16px"><strong>⭐ Premium feature</strong> — Real-time shared budgets require a Premium subscription. <span style="color:var(--accent);cursor:pointer;text-decoration:underline" onclick="goTo('upgrade')">Upgrade now</span></div>
+  </div>
+  <div id="shared-content">
+    <div class="grid g2" style="margin-bottom:12px">
+      <div class="card">
+        <div class="card-title">Create a shared budget</div>
+        <div class="fields" style="margin-bottom:12px">
+          <div class="field"><label>Budget name</label><input id="sb-name" placeholder="e.g. Family Budget"></div>
+        </div>
+        <button class="btn" style="width:100%" onclick="createSharedBudget()">+ Create shared budget</button>
+        <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
+          <div class="stitle">Join with invite code</div>
+          <div style="display:flex;gap:8px">
+            <input id="sb-invite-code" placeholder="Enter 8-character code" style="flex:1;text-transform:uppercase">
+            <button class="btn" onclick="joinSharedBudget()">Join</button>
+          </div>
+          <div id="sb-join-msg" style="font-size:12px;color:var(--text2);margin-top:6px"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Your shared budgets</div>
+        <div id="shared-budgets-list"><div class="empty">No shared budgets yet. Create one or join with an invite code.</div></div>
+      </div>
+    </div>
+    <div id="shared-budget-detail" style="display:none">
+      <div class="card" style="margin-bottom:12px">
+        <div class="card-title"><span id="sb-detail-name">Shared Budget</span><button onclick="document.getElementById('shared-budget-detail').style.display='none'">← Back</button></div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+          <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:8px 14px;font-size:15px;font-weight:800;letter-spacing:.1em;color:var(--accent)" id="sb-invite-display">CODE</div>
+          <button class="btn sec sm" onclick="copyInviteCode()">📋 Copy code</button>
+          <span style="font-size:12px;color:var(--text3)">Share this code to invite members</span>
+        </div>
+        <div class="card-title" style="margin-bottom:8px">Members</div>
+        <div id="sb-members-list"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Shared transactions</div>
+        <div id="sb-transactions-list"><div class="empty">No transactions yet.</div></div>
+      </div>
     </div>
   </div>
-  <div class="card"><div class="card-title">Contribution summary</div><div class="tbl-wrap"><table><thead><tr><th>Member</th><th>Salary</th><th>Contribution</th><th>Expenses</th><th>Net</th></tr></thead><tbody id="shared-tbody"></tbody></table></div></div>
 </div>
 <!-- DATA -->
 <div id="page-data" class="page">
@@ -546,6 +581,57 @@ input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent);cursor:po
     <label class="exc" style="display:inline-block;cursor:pointer;margin-bottom:12px"><input type="file" accept=".csv,.xlsx,.xls" onchange="impFile(event)" style="display:none"><div class="eico">📥</div><h3>Choose file</h3><p>CSV or Excel</p></label>
     <div id="import-preview"></div>
     <div id="impresult"></div>
+  </div>
+</div>
+<!-- UPGRADE -->
+<div id="page-upgrade" class="page">
+  <div class="ph"><div class="ph-l"><h1>Go Premium ⭐</h1><p>Unlock the full BudgetFlow experience.</p></div></div>
+  <div id="upgrade-status" style="margin-bottom:16px"></div>
+  <div class="grid g3" style="margin-bottom:20px" id="plan-cards">
+    <div class="card" style="border:2px solid var(--border);text-align:center;padding:24px;position:relative">
+      <div style="font-size:13px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Weekly</div>
+      <div style="font-size:36px;font-weight:800;color:var(--text);margin-bottom:4px">4.99 <span style="font-size:14px;color:var(--text3)">AED</span></div>
+      <div style="font-size:12px;color:var(--text3);margin-bottom:20px">per week</div>
+      <button class="btn" style="width:100%" onclick="startCheckout('price_1U9peLHQT7r6UZANbU1jRkxA')">Get Weekly</button>
+    </div>
+    <div class="card" style="border:2px solid var(--accent);text-align:center;padding:24px;position:relative">
+      <div style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--accent);color:#fff;font-size:11px;font-weight:700;padding:3px 12px;border-radius:99px">MOST POPULAR</div>
+      <div style="font-size:13px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Monthly</div>
+      <div style="font-size:36px;font-weight:800;color:var(--text);margin-bottom:4px">4.99 <span style="font-size:14px;color:var(--text3)">AED</span></div>
+      <div style="font-size:12px;color:var(--text3);margin-bottom:20px">per month · save vs weekly</div>
+      <button class="btn" style="width:100%" onclick="startCheckout('price_1U9pgjHQT7r6UZANt3XT4cYA')">Get Monthly</button>
+    </div>
+    <div class="card" style="border:2px solid var(--green);text-align:center;padding:24px;position:relative">
+      <div style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--green);color:#fff;font-size:11px;font-weight:700;padding:3px 12px;border-radius:99px">BEST VALUE</div>
+      <div style="font-size:13px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Annual</div>
+      <div style="font-size:36px;font-weight:800;color:var(--text);margin-bottom:4px">39.99 <span style="font-size:14px;color:var(--text3)">AED</span></div>
+      <div style="font-size:12px;color:var(--text3);margin-bottom:20px">per year · save 33%</div>
+      <button class="btn" style="width:100%;background:var(--green)" onclick="startCheckout('price_1U9pgjHQT7r6UZANMVThlXoM')">Get Annual</button>
+    </div>
+  </div>
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-title">What you get with Premium</div>
+    <div class="grid g2">
+      <div>
+        <div class="list-line"><span style="color:var(--green);margin-right:8px">✓</span><span class="lname">Unlimited AI receipt scanning</span></div>
+        <div class="list-line"><span style="color:var(--green);margin-right:8px">✓</span><span class="lname">Unlimited AI smart import</span></div>
+        <div class="list-line"><span style="color:var(--green);margin-right:8px">✓</span><span class="lname">PDF export</span></div>
+        <div class="list-line"><span style="color:var(--green);margin-right:8px">✓</span><span class="lname">Full transaction history (unlimited)</span></div>
+      </div>
+      <div>
+        <div class="list-line"><span style="color:var(--green);margin-right:8px">✓</span><span class="lname">Real-time shared budgets</span></div>
+        <div class="list-line"><span style="color:var(--green);margin-right:8px">✓</span><span class="lname">Multiple savings goals</span></div>
+        <div class="list-line"><span style="color:var(--green);margin-right:8px">✓</span><span class="lname">No ads</span></div>
+        <div class="list-line"><span style="color:var(--green);margin-right:8px">✓</span><span class="lname">Priority support</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Free tier limits</div>
+    <div class="list-line"><span style="color:var(--amber);margin-right:8px">⚠</span><span class="lname">3 AI scans per month</span></div>
+    <div class="list-line"><span style="color:var(--amber);margin-right:8px">⚠</span><span class="lname">3 months transaction history</span></div>
+    <div class="list-line"><span style="color:var(--amber);margin-right:8px">⚠</span><span class="lname">1 savings goal</span></div>
+    <div class="list-line"><span style="color:var(--amber);margin-right:8px">⚠</span><span class="lname">No PDF export</span></div>
   </div>
 </div>
 <!-- PROFILE -->
@@ -574,7 +660,7 @@ input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent);cursor:po
     <div class="card">
       <div class="stitle">Account</div>
       <div class="list-line"><span class="lname">Email</span><span id="prof-email-pill" style="font-size:12px;color:var(--text2)"></span></div>
-      <div class="list-line"><span class="lname">Plan</span><span class="pbadge paid" style="font-size:11px">Free</span></div>
+      <div class="list-line"><span class="lname">Plan</span><span id="prof-plan-badge" class="pbadge paid" style="font-size:11px">Free</span></div>
       <div class="list-line"><span class="lname">Member since</span><span style="font-size:12px;color:var(--text2)" id="prof-since"></span></div>
       <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
         <div class="stitle">Change email address</div>
@@ -594,7 +680,8 @@ input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent);cursor:po
       </div>
       <div style="margin-top:16px">
         <button class="btn" style="width:100%;margin-bottom:8px;background:var(--purple)" onclick="goTo('settings')">⚙️ Go to Settings</button>
-        <button class="btn sec" style="width:100%" onclick="if(confirm('Sign out?'))signOut()">↩ Sign out</button>
+        <div id="prof-billing-btn"></div>
+        <button class="btn sec" style="width:100%;margin-top:8px" onclick="if(confirm('Sign out?'))signOut()">↩ Sign out</button>
         <button class="btn dan" style="width:100%;margin-top:8px" onclick="deleteAccount()">🗑️ Delete account</button>
       </div>
       <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
@@ -841,6 +928,7 @@ function onSignIn(user){
   document.getElementById('user-av').textContent=name.charAt(0).toUpperCase();
   document.getElementById('user-nm').textContent=name;
   persist();
+  loadUserProfile();
   if(!S.wizardDone){wStep=0;document.getElementById('wizard').style.display='flex';buildWizard();}
   renderAll();
   if(S.wizardDone&&!S.tourDone)setTimeout(startTour,800);
@@ -854,7 +942,7 @@ function goTo(pg){
   document.querySelectorAll('.nb,.mnb').forEach(n=>n.classList.remove('on'));
   document.getElementById('page-'+pg).classList.add('on');
   document.querySelectorAll('.nb,.mnb').forEach(n=>{if(n.textContent.trim().toLowerCase().replace(/[^a-z]/g,'').startsWith(pg.slice(0,5)))n.classList.add('on');});
-  const titles={dashboard:'Dashboard',expenses:'Expenses',weekly:'Weekly',planner:'Planner',savings:'Savings',shared:'Shared',data:'Export',settings:'Settings',profile:'My Profile'};
+  const titles={dashboard:'Dashboard',expenses:'Expenses',weekly:'Weekly',planner:'Planner',savings:'Savings',shared:'Shared',data:'Export',settings:'Settings',profile:'My Profile',upgrade:'Go Premium'};
   document.getElementById('mob-title').textContent=titles[pg]||'BudgetFlow';
   renderAll();
 }
@@ -976,7 +1064,7 @@ function nextTour(){tourStep++;showTourStep();}
 function endTour(){document.getElementById('tour-overlay').style.display='none';document.querySelector('.tour-box')?.remove();S.tourDone=true;persist();goTo('dashboard');}
 
 // RENDER
-function renderAll(){rSB();rDash();rExpenses();rWeekly();rPlanner();rSavings();rShared();rSettings();rProfile();}
+function renderAll(){rSB();rDash();rExpenses();rWeekly();rPlanner();rSavings();rShared();rSettings();rProfile();updateUpgradeUI();updateUpgradeNav();}
 function rSB(){const s=cStart(),e=cEnd();const el=document.getElementById('cpill');if(el)el.textContent='Day '+dOfC()+' · '+s.toLocaleDateString('en',{day:'numeric',month:'short'})+' – '+e.toLocaleDateString('en',{day:'numeric',month:'short'})+' · '+dLeft()+' days left';}
 
 function rDash(){
@@ -1024,6 +1112,12 @@ function rExpenses(){
   const ccl=document.getElementById('cclist');
   if(ccl)ccl.innerHTML=coms.length?coms.map(c=>{const ps=cpaid(c.id);const sid=c.id.toString().replace(/[^a-z0-9]/gi,'_');return '<div class="cc '+(ps.paid?'done':'')+'"><input type="checkbox" '+(ps.paid?'checked':'')+' onchange="setCpaid(\''+c.id+'\',this.checked,document.getElementById(\'ca_'+sid+'\').value);renderAll()"><div><div class="cc-lbl">'+c.name+'</div><div class="cc-meta">'+(c.type||'Fixed')+(c.end?' · ends '+c.end:'')+' · Budget: '+fmt(c.amount)+'</div></div><div class="cc-amt-wrap"><input type="number" id="ca_'+sid+'" value="'+(ps.amount||c.amount)+'" step="0.01" style="width:80px;text-align:right"><span>'+(S.currency||'AED')+'</span></div><button class="mpbtn '+(ps.paid?'undo':'')+'" onclick="setCpaid(\''+c.id+'\','+(ps.paid?'false':'true')+',document.getElementById(\'ca_'+sid+'\').value);renderAll()">'+(ps.paid?'Undo':'Mark paid')+'</button></div>';}).join(''):'<div class="empty">No commitments. Add in Settings.</div>';
   const srt=[...S.transactions].sort((a,b)=>b.date.localeCompare(a.date));
+  // Update scan counter label
+  var scl=document.getElementById('scan-counter-label');
+  if(scl){
+    if(isPremium()){scl.textContent='AI reads merchant, amounts and date · Unlimited (Premium)';}
+    else{var sl=aiScansLeft();scl.innerHTML='AI reads merchant, amounts and date · <strong style="color:'+(sl>0?'var(--green)':'var(--red)')+'">'+sl+' scan'+(sl===1?'':'s')+' left this month</strong>'+(sl===0?' <span style="color:var(--accent);cursor:pointer;text-decoration:underline" onclick="goTo(\'upgrade\')">Upgrade</span>':'');}
+  }
   const atx=document.getElementById('alltxs');
   if(atx)atx.innerHTML=srt.length?srt.map(t=>{const c=getCat(t.catId),is=c&&c.name==='Savings';if(t._ed)return edRow(t);return '<div class="txi '+(t.flagged?'flagged':'')+'"><div class="txdot" style="background:'+(c?c.color:'#999')+'"></div><div class="txb"><div class="txd">'+t.desc+(t.flagged?' <span class="rflag">⚠️ Review</span>':'')+'</div><div class="txm">'+(c?c.name:'?')+' · '+t.date+'</div></div><div class="txa '+(is?'sav':'exp')+'">'+(is?'+':'−')+fmt(t.amount)+'</div><div class="txact"><button class="txbtn" onclick="edTx('+t.id+')">✏️</button><button class="txbtn del" onclick="delTx('+t.id+')">✕</button></div></div>';}).join(''):'<div class="empty">No transactions yet.</div>';
 }
@@ -1190,6 +1284,8 @@ function procReceipt(file){
   reader.onload=async function(ev){
     const b64=ev.target.result.split(',')[1],mt=file.type||'image/jpeg';
     try{
+      var canScan=await trackAiScan();
+      if(!canScan)return;
       const r=await fetch('/api/receipt',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({image:b64,media_type:mt})});
       const data=await r.json();const raw=data.content?.[0]?.text||'';
       let parsed;try{parsed=JSON.parse(raw.replace(/```json|```/g,'').trim());}catch(e){throw new Error('Could not parse receipt');}
@@ -1224,6 +1320,8 @@ async function impFile(e){
     if(file.name.endsWith('.csv')){const txt=await file.text();rawRows=txt.split('\n').filter(l=>l.trim()).map(l=>l.split(',').map(c=>c.replace(/"/g,'').trim()).join(' | '));}
     else{const buf=await file.arrayBuffer();const wb=XLSX.read(buf,{type:'array'});const ws=wb.Sheets[wb.SheetNames[0]];rawRows=XLSX.utils.sheet_to_json(ws,{header:1}).filter(r=>r.some(c=>c!=null&&String(c).trim())).map(r=>r.filter(c=>c!=null).map(c=>String(c).trim()).join(' | '));}
     if(!rawRows.length){prev.innerHTML='<div class="notice r">No data found in file.</div>';return;}
+    var canImport=await trackAiScan();
+    if(!canImport)return;
     const r=await fetch('/api/import',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({rows:rawRows.slice(0,50),categories:(S.categories||[]).map(c=>c.name),today:today()})});
     const data=await r.json();const raw=data.content?.[0]?.text||'';
     let parsed;try{parsed=JSON.parse(raw.replace(/```json|```/g,'').trim());}catch(e){throw new Error('AI could not parse the file');}
@@ -1251,6 +1349,7 @@ function expXLSX(){const wb=XLSX.utils.book_new();const td=[['Date','Description
 function expCSV(){const rows=[['Date','Description','Category','Amount'],...S.transactions.map(t=>[t.date,'"'+t.desc+'"',getCat(t.catId)?.name||'?',t.amount])];dl('BudgetFlow_'+today()+'.csv','text/csv',rows.map(r=>r.join(',')).join('\n'));showToast('CSV exported');}
 function expJSON(){dl('BudgetFlow_backup_'+today()+'.json','application/json',JSON.stringify(S,null,2));showToast('Backup exported');}
 async function expPDF(){
+  if(!isPremium()){showToast('PDF export is a Premium feature.');goTo('upgrade');return;}
   showToast('Generating PDF...');
   try{
     const{jsPDF}=window.jspdf;const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
@@ -1306,12 +1405,16 @@ function saveProfile(){
 function pickAvatarColor(){document.getElementById('avatar-palette')?.scrollIntoView({behavior:'smooth'});}
 function rProfile(){
   if(!currentUser)return;
+  var pb=document.getElementById('prof-plan-badge');
+  if(pb){pb.textContent=isPremium()?'⭐ Premium':'Free';pb.style.background=isPremium()?'var(--amber-dim)':'var(--green-dim)';pb.style.color=isPremium()?'var(--amber)':'var(--green)';pb.style.border='1px solid '+(isPremium()?'var(--amber)':'var(--green)');}
   const name=S.name||currentUser.user_metadata?.name||'User';
   const email=currentUser.email||'';
   const since=currentUser.created_at?new Date(currentUser.created_at).toLocaleDateString('en',{month:'long',year:'numeric'}):'';
   const av=document.getElementById('prof-avatar');
   if(av){av.textContent=name.charAt(0).toUpperCase();av.style.background=S.profile?.avatarColor||'var(--accent)';}
   const nd=document.getElementById('prof-name-display');if(nd)nd.textContent=name;
+  var bb=document.getElementById('prof-billing-btn');
+  if(bb){if(isPremium()){bb.innerHTML='<button class="btn" style="width:100%;margin-bottom:8px;background:var(--amber)" onclick="openBillingPortal()">⭐ Manage subscription</button>';}else{bb.innerHTML='<button class="btn" style="width:100%;margin-bottom:8px" onclick="goTo(\'upgrade\')">⭐ Upgrade to Premium</button>';}}
   const ed=document.getElementById('prof-email-display');if(ed)ed.textContent=email;
   const ep=document.getElementById('prof-email-pill');if(ep)ep.textContent=email;
   const si=document.getElementById('prof-since');if(si)si.textContent=since;
@@ -1434,6 +1537,130 @@ async function deleteAccount(){
 }
 
 // INIT
+// STRIPE & PREMIUM
+var stripeInstance=null;
+var userProfile={tier:'free',ai_scans_used:0,stripe_customer_id:null};
+
+function getStripe(){
+  if(!stripeInstance)stripeInstance=Stripe('pk_test_51U9pVXHQT7r6UZAN8yj4OdqqOBeW0hsA3Q5ONllZJNZf8snYCD5Hg81VvYgQ0tyomNv5LMrcSLuwiRb6CssQVYgE00HYd80mIH');
+  return stripeInstance;
+}
+
+function isPremium(){return userProfile.tier==='premium';}
+
+function aiScansLeft(){
+  if(isPremium())return 999;
+  var used=userProfile.ai_scans_used||0;
+  return Math.max(0,3-used);
+}
+
+async function loadUserProfile(){
+  if(!currentUser)return;
+  try{
+    var r=await sb.from('profiles').select('tier,ai_scans_used,ai_scans_reset_date,stripe_customer_id,stripe_subscription_id,subscription_status').eq('id',currentUser.id).single();
+    if(r.data){
+      userProfile=r.data;
+      // Reset scans if new month
+      var today2=new Date().toISOString().split('T')[0];
+      if(r.data.ai_scans_reset_date&&r.data.ai_scans_reset_date.substring(0,7)!==today2.substring(0,7)){
+        await sb.from('profiles').update({ai_scans_used:0,ai_scans_reset_date:today2}).eq('id',currentUser.id);
+        userProfile.ai_scans_used=0;
+      }
+    }
+    updateUpgradeUI();
+    updateUpgradeNav();
+  }catch(e){console.log('Profile load error:',e);}
+}
+
+function updateUpgradeNav(){
+  var nav=document.getElementById('upgrade-nav');
+  if(!nav)return;
+  if(isPremium()){nav.style.display='none';}
+  else{nav.style.display='';}
+  var badge=document.getElementById('user-tier-badge');
+  if(badge)badge.textContent=isPremium()?'⭐ PREMIUM':'FREE PLAN';
+}
+
+function updateUpgradeUI(){
+  var el=document.getElementById('upgrade-status');
+  if(!el)return;
+  if(isPremium()){
+    el.innerHTML='<div class="notice g"><strong>⭐ You are on Premium!</strong> All features unlocked. <button class="btn sec sm" style="margin-left:10px" onclick="openBillingPortal()">Manage subscription</button></div>';
+    var cards=document.getElementById('plan-cards');
+    if(cards)cards.style.display='none';
+  }else{
+    var left=aiScansLeft();
+    el.innerHTML='<div class="notice a"><strong>Free plan</strong> · '+left+' AI scan'+(left===1?'':'s')+' remaining this month. Upgrade for unlimited access.</div>';
+  }
+}
+
+async function startCheckout(priceId){
+  if(!currentUser){showToast('Please sign in first.');return;}
+  try{
+    showToast('Redirecting to checkout...');
+    var r=await fetch('/api/stripe-checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({priceId,userId:currentUser.id,email:currentUser.email})});
+    var data=await r.json();
+    if(data.url)window.location.href=data.url;
+    else showToast('Checkout failed: '+(data.error||'Unknown error'));
+  }catch(e){showToast('Checkout error: '+e.message);}
+}
+
+async function openBillingPortal(){
+  if(!userProfile.stripe_customer_id){showToast('No billing account found.');return;}
+  try{
+    var r=await fetch('/api/stripe-portal',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({customerId:userProfile.stripe_customer_id})});
+    var data=await r.json();
+    if(data.url)window.location.href=data.url;
+    else showToast('Could not open billing portal.');
+  }catch(e){showToast('Portal error: '+e.message);}
+}
+
+async function trackAiScan(){
+  if(isPremium())return true;
+  if(aiScansLeft()<=0){
+    showToast('AI scan limit reached. Upgrade to Premium for unlimited scans.');
+    goTo('upgrade');
+    return false;
+  }
+  var newCount=(userProfile.ai_scans_used||0)+1;
+  await sb.from('profiles').update({ai_scans_used:newCount}).eq('id',currentUser.id);
+  userProfile.ai_scans_used=newCount;
+  return true;
+}
+
+// CLOUD SYNC - Save data to Supabase
+async function cloudSave(){
+  if(!currentUser)return;
+  try{
+    await sb.from('profiles').upsert({
+      id:currentUser.id,
+      name:S.name,
+      currency:S.currency,
+      salary:S.salary,
+      payday:S.payday,
+      theme:S.theme
+    });
+  }catch(e){console.log('Cloud save error:',e);}
+}
+
+// Handle post-payment redirect
+if(window.location.search.includes('upgraded=1')){
+  setTimeout(async()=>{
+    await loadUserProfile();
+    showToast('Welcome to Premium! All features are now unlocked.');
+    var url=new URL(window.location);url.search='';
+    window.history.replaceState({},'',url);
+    goTo('dashboard');
+  },1000);
+}
+if(window.location.search.includes('cancelled=1')){
+  setTimeout(()=>{
+    showToast('Upgrade cancelled. You are still on the free plan.');
+    var url=new URL(window.location);url.search='';
+    window.history.replaceState({},'',url);
+  },500);
+}
+
 // PASSWORD VISIBILITY
 function togglePwdVis(inputId,icon){
   var inp=document.getElementById(inputId);
