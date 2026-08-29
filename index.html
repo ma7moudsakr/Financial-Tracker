@@ -101,7 +101,7 @@ button,input,select{font-family:inherit;}
 .theme-btn{background:var(--surface2);border:1px solid var(--border);border-radius:99px;padding:6px 13px;font-size:12px;font-weight:500;color:var(--text2);cursor:pointer;display:flex;align-items:center;gap:6px;}
 #toast{position:fixed;right:20px;bottom:80px;background:var(--text);color:var(--surface);padding:11px 16px;border-radius:var(--r-sm);font-size:13px;font-weight:600;opacity:0;transform:translateY(8px);transition:.2s;pointer-events:none;z-index:9999;}
 #toast.show{opacity:1;transform:none;}
-@media(min-width:769px){#toast{bottom:20px;}}
+@media(min-width:769px){#toast{bottom:20px;}#help-fab{bottom:20px;}}
 /* GRID & CARDS */
 .grid{display:grid;gap:12px;}
 .g2{grid-template-columns:1fr 1fr;}
@@ -717,7 +717,7 @@ input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent);cursor:po
   <div class="grid g3" style="margin-bottom:20px" id="plan-cards">
     <div class="card" style="border:2px solid var(--border);text-align:center;padding:24px;position:relative">
       <div style="font-size:13px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Weekly</div>
-      <div style="font-size:36px;font-weight:800;color:var(--text);margin-bottom:2px">2.99 <span style="font-size:14px;color:var(--text3)">AED</span></div>
+      <div style="font-size:36px;font-weight:800;color:var(--text);margin-bottom:2px">2.99 <span style="font-size:14px;color:var(--text3)">USD</span></div>
       <div style="font-size:12px;color:var(--text3);margin-bottom:4px">per week</div>
       <div style="font-size:11px;color:var(--accent);margin-bottom:16px">20 AI scans/week</div>
       <button class="btn" style="width:100%" onclick="startCheckout('price_1U9peLHQT7r6UZANbU1jRkxA')">Get Weekly</button>
@@ -725,7 +725,7 @@ input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent);cursor:po
     <div class="card" style="border:2px solid var(--accent);text-align:center;padding:24px;position:relative">
       <div style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--accent);color:#fff;font-size:11px;font-weight:700;padding:3px 12px;border-radius:99px">MOST POPULAR</div>
       <div style="font-size:13px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Monthly</div>
-      <div style="font-size:36px;font-weight:800;color:var(--text);margin-bottom:2px">4.99 <span style="font-size:14px;color:var(--text3)">AED</span></div>
+      <div style="font-size:36px;font-weight:800;color:var(--text);margin-bottom:2px">4.99 <span style="font-size:14px;color:var(--text3)">USD</span></div>
       <div style="font-size:12px;color:var(--text3);margin-bottom:4px">per month</div>
       <div style="font-size:11px;color:var(--accent);margin-bottom:16px">50 AI scans/month</div>
       <button class="btn" style="width:100%" onclick="startCheckout('price_1U9pgjHQT7r6UZANt3XT4cYA')">Get Monthly</button>
@@ -733,7 +733,7 @@ input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent);cursor:po
     <div class="card" style="border:2px solid var(--green);text-align:center;padding:24px;position:relative">
       <div style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--green);color:#fff;font-size:11px;font-weight:700;padding:3px 12px;border-radius:99px">BEST VALUE</div>
       <div style="font-size:13px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Annual</div>
-      <div style="font-size:36px;font-weight:800;color:var(--text);margin-bottom:2px">39.99 <span style="font-size:14px;color:var(--text3)">AED</span></div>
+      <div style="font-size:36px;font-weight:800;color:var(--text);margin-bottom:2px">39.99 <span style="font-size:14px;color:var(--text3)">USD</span></div>
       <div style="font-size:12px;color:var(--text3);margin-bottom:4px">per year · save 33%</div>
       <div style="font-size:11px;color:var(--green);margin-bottom:16px">100 AI scans/month</div>
       <button class="btn" style="width:100%;background:var(--green)" onclick="startCheckout('price_1U9pgjHQT7r6UZANMVThlXoM')">Get Annual</button>
@@ -754,7 +754,7 @@ input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent);cursor:po
           </tr>
         </thead>
         <tbody>
-          <tr><td>Price</td><td style="text-align:center">Free</td><td style="text-align:center">2.99 AED/wk</td><td style="text-align:center">4.99 AED/mo</td><td style="text-align:center;color:var(--green);font-weight:700">39.99 AED/yr</td></tr>
+          <tr><td>Price</td><td style="text-align:center">Free</td><td style="text-align:center">2.99 USD/wk</td><td style="text-align:center">4.99 USD/mo</td><td style="text-align:center;color:var(--green);font-weight:700">39.99 USD/yr</td></tr>
           <tr><td>AI scans (receipts + imports)</td><td style="text-align:center;color:var(--red)">3 lifetime total</td><td style="text-align:center;color:var(--accent)">20/week</td><td style="text-align:center;color:var(--accent)">50/month</td><td style="text-align:center;color:var(--green)">100/month</td></tr>
           <tr><td>AI smart import</td><td style="text-align:center;color:var(--red);font-size:11px">Same 3-scan pool<br><span style="color:var(--text3)">scans + imports combined</span></td><td style="text-align:center;color:var(--accent)">✓ Same pool as scans</td><td style="text-align:center;color:var(--accent)">✓ Same pool as scans</td><td style="text-align:center;color:var(--green)">✓ Same pool as scans</td></tr>
           <tr><td>PDF export</td><td style="text-align:center;color:var(--red)">✗</td><td style="text-align:center;color:var(--accent)">✓</td><td style="text-align:center;color:var(--accent)">✓</td><td style="text-align:center;color:var(--green)">✓</td></tr>
@@ -883,6 +883,44 @@ input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent);cursor:po
     <button class="btn sec sm" style="margin-top:10px" onclick="addCat()">+ Add category</button>
   </div>
 </div>
+
+<!-- HELP / FAQ MODAL -->
+<div id="help-modal" style="display:none;position:fixed;inset:0;background:rgba(10,14,28,.7);backdrop-filter:blur(4px);z-index:9994;align-items:flex-end;justify-content:flex-end;padding:20px">
+  <div style="background:var(--surface);border-radius:var(--r);width:100%;max-width:400px;height:75vh;display:flex;flex-direction:column;box-shadow:0 24px 80px rgba(0,0,0,.3)">
+    <!-- Header -->
+    <div style="padding:16px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
+      <div>
+        <div style="font-size:15px;font-weight:800">BudgetFlow Help</div>
+        <div style="font-size:11px;color:var(--text3)" id="help-subtitle">FAQ &amp; AI Support</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button onclick="showHelpTab('faq')" id="tab-faq" style="font-size:12px;font-weight:600;padding:5px 10px;border-radius:var(--r-sm);border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer">FAQ</button>
+        <button onclick="showHelpTab('chat')" id="tab-chat" style="font-size:12px;font-weight:600;padding:5px 10px;border-radius:var(--r-sm);border:1px solid var(--border);background:none;color:var(--text2);cursor:pointer">AI Chat ⭐</button>
+        <button onclick="closeHelp()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--text3);padding:2px 6px">✕</button>
+      </div>
+    </div>
+    <!-- FAQ TAB -->
+    <div id="help-faq" style="flex:1;overflow-y:auto;padding:14px">
+      <input id="faq-search" placeholder="Search questions..." oninput="filterFAQ(this.value)" style="margin-bottom:12px;font-size:13px">
+      <div id="faq-list"></div>
+    </div>
+    <!-- CHAT TAB -->
+    <div id="help-chat" style="flex:1;display:none;flex-direction:column">
+      <div id="chat-messages" style="flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px"></div>
+      <div style="padding:12px;border-top:1px solid var(--border);display:flex;gap:8px;flex-shrink:0">
+        <input id="chat-input" placeholder="Ask anything about BudgetFlow..." style="flex:1;font-size:13px" onkeydown="if(event.key==='Enter')sendChatMsg()">
+        <button class="btn sm" onclick="sendChatMsg()" id="chat-send-btn">Send</button>
+      </div>
+      <div id="chat-premium-gate" style="display:none;padding:14px;text-align:center;background:var(--amber-dim);border-top:1px solid var(--amber)">
+        <div style="font-size:13px;font-weight:700;color:var(--amber);margin-bottom:6px">⭐ Premium feature</div>
+        <div style="font-size:12px;color:var(--text2);margin-bottom:10px">AI support chat is available on Premium plans.</div>
+        <button class="btn sm" onclick="closeHelp();goTo('upgrade')">Upgrade now</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- HELP BUTTON (floating) -->
+<button id="help-fab" onclick="toggleHelp()" style="position:fixed;bottom:80px;right:20px;width:48px;height:48px;border-radius:50%;background:var(--accent);color:#fff;border:none;font-size:22px;cursor:pointer;box-shadow:0 4px 16px rgba(91,127,232,.4);z-index:200;display:flex;align-items:center;justify-content:center;transition:transform .15s" title="Help & FAQ">?</button>
 </main></div>
 <div id="snap-target" style="position:fixed;left:-9999px;top:0;width:800px;background:#fff"></div>
 <script>
@@ -1096,6 +1134,7 @@ function onSignIn(user){
   const name=user.user_metadata?.name||user.email?.split('@')[0]||'User';
   if(!S.name)S.name=name;
   document.getElementById('user-pill').style.display='flex';
+  var fab=document.getElementById('help-fab');if(fab)fab.style.display='flex';
   document.getElementById('user-av').textContent=name.charAt(0).toUpperCase();
   document.getElementById('user-nm').textContent=name;
   persist();
@@ -2384,6 +2423,184 @@ function pFmt(n,d){
   if(!privacyOn)return fmt(n,d);
   return '<span class="blurred-money">'+fmt(n,d)+'</span>';
 }
+
+// FAQ DATA
+var FAQ_DATA = [
+  {q:"How do I set up my budget?",a:"Go to Settings and enter your monthly salary, pay day, and savings goal. Then add your monthly commitments (rent, loans, etc.). BudgetFlow will calculate your free-to-spend amount automatically.",cat:"Getting started"},
+  {q:"What is 'Free to spend'?",a:"Free to spend is your salary minus all commitments and savings contributions. It's what you have left for daily expenses like food, transport, and entertainment.",cat:"Getting started"},
+  {q:"How does the savings auto-commitment work?",a:"When you set a savings goal with a target amount and deadline, BudgetFlow calculates the monthly contribution needed and automatically adds it as a commitment — so it's always deducted from your free-to-spend amount.",cat:"Getting started"},
+  {q:"Why did my data disappear after logging out?",a:"Your data is saved in your browser's local storage. To sync across devices, make sure you're signed in — cloud sync saves your settings to your account. Transactions sync is coming in the next update.",cat:"Account"},
+  {q:"How do I change my password?",a:"Go to My Profile → scroll down to 'Change password' → enter your new password and click Update.",cat:"Account"},
+  {q:"How do I delete my account?",a:"Go to My Profile → scroll down → click 'Delete account'. You'll be asked to type DELETE to confirm. This permanently removes your account and all data.",cat:"Account"},
+  {q:"How does AI receipt scanning work?",a:"In Expenses & Receipts, click 'Scan Receipt' and upload a photo or take one with your camera. The AI reads the merchant name, amount and date automatically. Free users get 3 lifetime scans — Premium users get 20-100 per period depending on their plan.",cat:"AI features"},
+  {q:"How do I import bank transactions?",a:"Go to Import & Export → choose a CSV or Excel file from your bank. AI parses every row, suggests categories, and flags uncertain items for you to review before importing.",cat:"AI features"},
+  {q:"Why did my AI scan fail?",a:"Common reasons: the receipt photo is blurry or too dark, the amount is handwritten, or the image format is unsupported. Try retaking the photo in better light. Make sure you have scans remaining (free: 3 lifetime, premium: varies by plan).",cat:"AI features"},
+  {q:"How do I create an expense report for a business trip?",a:"Go to Expense Reports (✈️ in the sidebar) → click '+ New trip' → fill in the trip details → add expenses one by one with receipt photos → when done click 'Export PDF'. PDF export requires Premium.",cat:"Expense reports"},
+  {q:"Can I add my company logo to the expense report PDF?",a:"Yes. When exporting, click 'Export PDF' → upload your company logo → choose Formal Corporate or Clean Modern style → click Generate PDF.",cat:"Expense reports"},
+  {q:"What's the difference between Formal and Modern PDF styles?",a:"Formal Corporate uses a traditional finance format with numbered expense table, employee details block, and signature lines — ideal for submitting to HR or finance. Clean Modern is colour-coded with a summary header and category breakdown — more visual and branded.",cat:"Expense reports"},
+  {q:"How do shared budgets work?",a:"Go to Shared Budget → create a budget and share the 8-character invite code with your partner or family member. They enter the code to join. Both users can then view and add to the shared budget. Requires Premium.",cat:"Shared budgets"},
+  {q:"How do I invite someone to my shared budget?",a:"Open the shared budget → you'll see your invite code displayed. Copy it and share via WhatsApp or any messaging app. The other person goes to Shared Budget → enters the code → clicks Join.",cat:"Shared budgets"},
+  {q:"What does Premium include?",a:"Premium unlocks: unlimited AI scans (20-100/period), PDF export, expense report PDFs, company logo on PDFs, cloud receipt storage, real-time shared budgets, unlimited transaction history, unlimited savings goals, and priority AI support chat.",cat:"Premium"},
+  {q:"How do I upgrade to Premium?",a:"Go to the '⭐ Go Premium' section in the sidebar → choose Weekly ($2.99), Monthly ($4.99) or Annual ($39.99) → you'll be redirected to a secure Stripe checkout page.",cat:"Premium"},
+  {q:"How do I cancel my subscription?",a:"Go to My Profile → click 'Manage subscription' → you'll be taken to the Stripe billing portal where you can cancel, change plan, or update payment details.",cat:"Premium"},
+  {q:"How does the referral program work?",a:"Your referral code is shown in My Profile. Share it with friends. When they sign up with your code, they get +5 bonus AI scans. When they upgrade to Premium, you get +10 bonus scans.",cat:"Referral"},
+  {q:"What is Privacy Mode?",a:"Privacy Mode blurs all monetary amounts on the dashboard so you can show the app to someone without revealing your finances. Click the 👁️ Hide button on the dashboard to toggle it. Hover over any blurred amount to temporarily reveal it.",cat:"Features"},
+  {q:"How do I mark a commitment as paid?",a:"On the Dashboard, find the commitment in the Commitments card and click 'Mark paid'. Or go to Expenses & Receipts where all commitments are listed with a checkbox and editable amount.",cat:"Features"},
+  {q:"What happens when a commitment's end date passes?",a:"Time-bound commitments automatically stop appearing in your dashboard and calculations once their end date passes. You don't need to delete them.",cat:"Features"},
+];
+
+var filteredFAQ = FAQ_DATA;
+var helpOpen = false;
+var chatHistory = [];
+
+function toggleHelp(){
+  var modal = document.getElementById('help-modal');
+  if(!modal) return;
+  helpOpen = !helpOpen;
+  modal.style.display = helpOpen ? 'flex' : 'none';
+  if(helpOpen){ showHelpTab('faq'); renderFAQ(FAQ_DATA); }
+}
+function closeHelp(){
+  helpOpen = false;
+  var modal = document.getElementById('help-modal');
+  if(modal) modal.style.display = 'none';
+}
+
+function showHelpTab(tab){
+  var faqEl = document.getElementById('help-faq');
+  var chatEl = document.getElementById('help-chat');
+  var tabFaq = document.getElementById('tab-faq');
+  var tabChat = document.getElementById('tab-chat');
+  var subtitle = document.getElementById('help-subtitle');
+  if(tab === 'faq'){
+    if(faqEl) faqEl.style.display = '';
+    if(chatEl) chatEl.style.display = 'none';
+    if(tabFaq){ tabFaq.style.background='var(--accent)';tabFaq.style.color='#fff';tabFaq.style.borderColor='var(--accent)';}
+    if(tabChat){ tabChat.style.background='none';tabChat.style.color='var(--text2)';tabChat.style.borderColor='var(--border)';}
+    if(subtitle) subtitle.textContent = 'Frequently asked questions';
+  } else {
+    if(faqEl) faqEl.style.display = 'none';
+    if(chatEl){ chatEl.style.display='flex';}
+    if(tabChat){ tabChat.style.background='var(--accent)';tabChat.style.color='#fff';tabChat.style.borderColor='var(--accent)';}
+    if(tabFaq){ tabFaq.style.background='none';tabFaq.style.color='var(--text2)';tabFaq.style.borderColor='var(--border)';}
+    if(subtitle) subtitle.textContent = 'AI-powered support';
+    // Show premium gate if not premium
+    var gate = document.getElementById('chat-premium-gate');
+    var input = document.getElementById('chat-input');
+    var sendBtn = document.getElementById('chat-send-btn');
+    if(!isPremium()){
+      if(gate) gate.style.display = '';
+      if(input) input.disabled = true;
+      if(sendBtn) sendBtn.disabled = true;
+    } else {
+      if(gate) gate.style.display = 'none';
+      if(input) input.disabled = false;
+      if(sendBtn) sendBtn.disabled = false;
+      if(!chatHistory.length) addChatMsg('bot', 'Hi! I\'m the BudgetFlow AI assistant. Ask me anything about using the app, your budget, or your account.');
+    }
+  }
+}
+
+function renderFAQ(items){
+  var list = document.getElementById('faq-list');
+  if(!list) return;
+  if(!items.length){ list.innerHTML = '<div class="empty">No results found.</div>'; return; }
+  // Group by category
+  var cats = {};
+  items.forEach(function(item){
+    if(!cats[item.cat]) cats[item.cat] = [];
+    cats[item.cat].push(item);
+  });
+  var html = '';
+  Object.keys(cats).forEach(function(cat){
+    html += '<div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin:10px 0 6px">' + cat + '</div>';
+    cats[cat].forEach(function(item, i){
+      var id = 'faq-' + cat.replace(/\s/g,'') + i;
+      html += '<div style="border:1px solid var(--border);border-radius:var(--r-sm);margin-bottom:6px;overflow:hidden">';
+      html += '<div onclick="toggleFAQ(\'' + id + '\')" style="padding:10px 12px;cursor:pointer;font-size:13px;font-weight:600;display:flex;justify-content:space-between;align-items:center;background:var(--surface2)">';
+      html += '<span>' + item.q + '</span><span style="color:var(--text3);font-size:16px" id="' + id + '-ic">+</span></div>';
+      html += '<div id="' + id + '" style="display:none;padding:10px 12px;font-size:13px;color:var(--text2);line-height:1.6;border-top:1px solid var(--border)">' + item.a + '</div>';
+      html += '</div>';
+    });
+  });
+  list.innerHTML = html;
+}
+
+function toggleFAQ(id){
+  var el = document.getElementById(id);
+  var ic = document.getElementById(id + '-ic');
+  if(!el) return;
+  var open = el.style.display !== 'none';
+  el.style.display = open ? 'none' : '';
+  if(ic) ic.textContent = open ? '+' : '−';
+}
+
+function filterFAQ(q){
+  if(!q){ renderFAQ(FAQ_DATA); return; }
+  var lower = q.toLowerCase();
+  var results = FAQ_DATA.filter(function(item){
+    return item.q.toLowerCase().includes(lower) || item.a.toLowerCase().includes(lower) || item.cat.toLowerCase().includes(lower);
+  });
+  renderFAQ(results);
+}
+
+function addChatMsg(role, text){
+  chatHistory.push({role, text});
+  var msgs = document.getElementById('chat-messages');
+  if(!msgs) return;
+  var div = document.createElement('div');
+  var isBot = role === 'bot';
+  div.style.cssText = 'display:flex;flex-direction:' + (isBot?'row':'row-reverse') + ';gap:8px;align-items:flex-start';
+  div.innerHTML = '<div style="width:28px;height:28px;border-radius:50%;background:' + (isBot?'var(--accent)':'var(--surface3)') + ';display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0">' + (isBot?'🤖':'👤') + '</div>' +
+    '<div style="max-width:80%;padding:9px 12px;border-radius:12px;background:' + (isBot?'var(--surface2)':'var(--accent)') + ';color:' + (isBot?'var(--text)':'#fff') + ';font-size:13px;line-height:1.6">' + text + '</div>';
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+async function sendChatMsg(){
+  if(!isPremium()){ showToast('AI support chat is a Premium feature.'); return; }
+  var input = document.getElementById('chat-input');
+  var btn = document.getElementById('chat-send-btn');
+  var msg = input ? input.value.trim() : '';
+  if(!msg) return;
+  addChatMsg('user', msg);
+  if(input) input.value = '';
+  if(btn){ btn.textContent = '...'; btn.disabled = true; }
+  try{
+    // Build context about user's current state
+    var ctx = 'User context: Name=' + (S.name||'unknown') + ', Currency=' + (S.currency||'AED') + ', Salary=' + S.salary + ', Savings goal=' + (S.goal.name||'none') + ' target=' + S.goal.target + ' saved=' + S.goal.saved + ', Active commitments=' + aCommits().length + ', Transactions this cycle=' + cTxs().length + '. Plan=' + (isPremium()?'Premium':'Free') + '.';
+    var messages = [{role:'user', content: ctx + '\n\nUser question: ' + msg}];
+    // Add recent chat history for context
+    chatHistory.slice(-4).forEach(function(h){
+      if(h.role !== 'bot' || h.text !== msg) messages.push({role: h.role==='bot'?'assistant':'user', content: h.text});
+    });
+    var r = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 400,
+        system: 'You are the BudgetFlow in-app support assistant. BudgetFlow is a personal budget tracking app with features: dashboard, expenses & receipts, AI receipt scanning, weekly tracker, planner, savings plan, shared budgets (premium), expense reports for business trips (premium), import/export, and settings. Free tier: 3 lifetime AI scans, 3 months history, 1 goal. Premium: $2.99/week, $4.99/month, $39.99/year — unlocks unlimited AI scans, PDF export, shared budgets, expense report PDFs, unlimited history. Be helpful, concise, and friendly. Answer in 2-4 sentences max. If you cannot help, suggest emailing support@budgetflow.app.',
+        messages: messages
+      })
+    });
+    var data = await r.json();
+    var reply = data.content && data.content[0] ? data.content[0].text : 'Sorry, I could not process that. Please try again.';
+    addChatMsg('bot', reply);
+  }catch(e){
+    addChatMsg('bot', 'Sorry, something went wrong. Please try again or email support@budgetflow.app');
+  }
+  if(btn){ btn.textContent = 'Send'; btn.disabled = false; }
+}
+
+// Handle click outside to close help
+document.addEventListener('click', function(e){
+  var modal = document.getElementById('help-modal');
+  var fab = document.getElementById('help-fab');
+  if(helpOpen && modal && !modal.querySelector('div').contains(e.target) && e.target !== fab && !fab.contains(e.target)){
+    closeHelp();
+  }
+});
 
 // Handle password reset redirect
 if(window.location.search.includes('reset=1')||window.location.hash.includes('type=recovery')){
