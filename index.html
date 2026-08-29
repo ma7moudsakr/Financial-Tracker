@@ -694,22 +694,43 @@ function switchAuthTab(tab){
   document.getElementById('auth-err').style.display='none';
   document.getElementById('auth-msg').textContent='';
 }
+async function resendConfirm(){
+  const btn=document.getElementById('resend-btn');
+  const msg=document.getElementById('resend-msg');
+  const email=window._confirmEmail;
+  if(!email)return;
+  if(btn){btn.disabled=true;btn.textContent='Sending...';}
+  try{
+    const{error}=await sb.auth.resend({type:'signup',email});
+    if(error)throw error;
+    if(msg)msg.textContent='✓ Email resent. Check your inbox (and spam folder).';
+    if(btn){btn.textContent='Resend email';btn.disabled=false;}
+  }catch(e){
+    if(msg)msg.textContent='Could not resend: '+(e.message||'please wait a moment and try again.');
+    if(btn){btn.textContent='Resend email';btn.disabled=false;}
+  }
+}
 function showConfirmScreen(email){
   var box=document.querySelector('.auth-box');
   if(!box)return;
+  var resendEmail=email;
   box.innerHTML=[
     '<div style="text-align:center;padding:20px 0">',
     '<div style="font-size:48px;margin-bottom:16px">&#x2709;&#xFE0F;</div>',
     '<div style="font-size:22px;font-weight:800;color:var(--accent);margin-bottom:8px">BudgetFlow</div>',
     '<h3 style="font-size:17px;font-weight:700;margin-bottom:10px;color:var(--text)">Check your email</h3>',
-    '<p style="font-size:13px;color:var(--text2);line-height:1.8;margin-bottom:20px">',
+    '<p style="font-size:13px;color:var(--text2);line-height:1.8;margin-bottom:8px">',
     'We sent a confirmation link to<br>',
     '<strong style="color:var(--text)">'+email+'</strong><br><br>',
     'Click the link to activate your account,<br>then come back here to sign in.',
     '</p>',
-    '<button class="auth-btn" onclick="location.reload()">Back to sign in</button>',
+    '<p style="font-size:11px;color:var(--text3);margin-bottom:16px">The link expires in 10 minutes.</p>',
+    '<button class="auth-btn" id="resend-btn" onclick="resendConfirm()" style="margin-bottom:8px">Resend email</button>',
+    '<button class="auth-btn" onclick="location.reload()" style="background:var(--surface2);color:var(--text2);border:1px solid var(--border)">Back to sign in</button>',
+    '<div id="resend-msg" style="font-size:12px;color:var(--text2);margin-top:10px"></div>',
     '</div>'
   ].join('');
+  window._confirmEmail=email;
 }
 async function handleAuth(){
   const email=document.getElementById('auth-email').value.trim();
@@ -717,14 +738,22 @@ async function handleAuth(){
   const name=document.getElementById('auth-name').value.trim();
   const errEl=document.getElementById('auth-err');errEl.style.display='none';
   const btn=document.getElementById('auth-submit');
-  if(!email||!pwd){errEl.textContent='Please enter your email and password.';errEl.style.display='block';return;}
+  if(!email||!pwd){errEl.innerHTML='Please enter your email and password.';errEl.style.display='block';return;}
   btn.textContent='Please wait...';btn.disabled=true;
   try{
     let result;
     if(authTab==='signup'){
-      if(!name){errEl.textContent='Please enter your name.';errEl.style.display='block';btn.textContent='Create account';btn.disabled=false;return;}
+      if(!name){errEl.innerHTML='Please enter your name.';errEl.style.display='block';btn.textContent='Create account';btn.disabled=false;return;}
       result=await sb.auth.signUp({email,password:pwd,options:{data:{name}}});
       if(result.error)throw result.error;
+      // Supabase returns a fake success for existing emails — detect it
+      // If identities array is empty, the email is already registered
+      if(result.data?.user&&result.data.user.identities&&result.data.user.identities.length===0){
+        errEl.innerHTML='An account with this email already exists. <span style="color:var(--accent);cursor:pointer;text-decoration:underline" onclick="switchAuthTab(\'login\')">Sign in instead</span>.';
+        errEl.style.display='block';
+        btn.textContent='Create account';btn.disabled=false;
+        return;
+      }
       // Clear form and show confirmation screen
       document.getElementById('auth-email').value='';
       document.getElementById('auth-password').value='';
@@ -736,7 +765,25 @@ async function handleAuth(){
       onSignIn(result.data.user);
     }
   }catch(e){
-    errEl.textContent=e.message||'Something went wrong. Please try again.';
+    const msg=e.message||'';
+    let friendly='';
+    if(authTab==='login'){
+      if(msg.toLowerCase().includes('invalid login credentials')||msg.toLowerCase().includes('invalid')){
+        // Check if user exists by trying to resend - simpler: just show two options
+        friendly='No account found with this email, or your password is incorrect. <span style="color:var(--accent);cursor:pointer;text-decoration:underline" onclick="switchAuthTab(\'signup\')">Create an account</span> or check your password.';
+      } else if(msg.toLowerCase().includes('email not confirmed')){
+        friendly='Please confirm your email first. Check your inbox for the confirmation link.';
+      } else {
+        friendly=msg||'Something went wrong. Please try again.';
+      }
+    } else {
+      if(msg.toLowerCase().includes('already registered')||msg.toLowerCase().includes('already exists')){
+        friendly='An account with this email already exists. <span style="color:var(--accent);cursor:pointer;text-decoration:underline" onclick="switchAuthTab(\'login\')">Sign in instead</span>.';
+      } else {
+        friendly=msg||'Something went wrong. Please try again.';
+      }
+    }
+    errEl.innerHTML=friendly;
     errEl.style.display='block';
     btn.textContent=authTab==='login'?'Sign in':'Create account';
     btn.disabled=false;
