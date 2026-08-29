@@ -359,6 +359,10 @@ input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent);cursor:po
         <span onclick="togglePwdVis('auth-password',this)" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:16px;color:var(--text3)">👁️</span>
       </div>
     </div>
+    <div class="auth-field" id="referral-field" style="display:none">
+      <label>Referral code (optional)</label>
+      <input type="text" id="auth-referral" placeholder="e.g. SAKR1234" style="text-transform:uppercase">
+    </div>
     <button class="auth-btn" id="auth-submit" onclick="handleAuth()">Sign in</button>
     <div style="text-align:center;margin-bottom:4px"><span style="font-size:12px;color:var(--accent);cursor:pointer;text-decoration:underline" id="forgot-link" onclick="showForgotPassword()">Forgot password?</span></div>
     <div class="auth-divider">or</div>
@@ -819,6 +823,27 @@ input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent);cursor:po
         <div class="stitle">Avatar colour</div>
         <div class="palette" id="avatar-palette" style="margin-top:6px"></div>
       </div>
+      <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
+        <div class="stitle">Referral program</div>
+        <div style="font-size:12px;color:var(--text2);margin-bottom:10px;line-height:1.6">Share BudgetFlow with friends. When they sign up with your code and upgrade to Premium, you both get bonus AI scans — <strong>+10 scans for you, +5 for them</strong>.</div>
+        <div style="background:var(--surface3);border:1px solid var(--border);border-radius:var(--r-sm);padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px">
+          <div>
+            <div style="font-size:11px;color:var(--text3);margin-bottom:2px">Your referral code</div>
+            <div style="font-size:18px;font-weight:800;letter-spacing:.1em;color:var(--accent)" id="ref-code-display">——</div>
+          </div>
+          <button class="btn sec sm" onclick="copyReferralCode()">📋 Copy</button>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn sec sm" style="flex:1" onclick="shareReferral()">📤 Share link</button>
+        </div>
+        <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
+          <div style="font-size:11px;color:var(--text3);margin-bottom:6px">REFERRAL STATS</div>
+          <div class="grid g2" id="ref-stats" style="gap:8px">
+            <div style="background:var(--surface2);border-radius:var(--r-sm);padding:10px;text-align:center"><div style="font-size:20px;font-weight:800;color:var(--accent)" id="ref-count">0</div><div style="font-size:11px;color:var(--text3)">referred</div></div>
+            <div style="background:var(--surface2);border-radius:var(--r-sm);padding:10px;text-align:center"><div style="font-size:20px;font-weight:800;color:var(--green)" id="ref-scans-earned">0</div><div style="font-size:11px;color:var(--text3)">bonus scans earned</div></div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
   <div class="card">
@@ -937,6 +962,14 @@ function switchAuthTab(tab){
   document.getElementById('auth-err').style.display='none';
   const am=document.getElementById('auth-msg');if(am)am.textContent='';
   const fl=document.getElementById('forgot-link');if(fl)fl.style.display=tab==='login'?'':'none';
+  const rf=document.getElementById('referral-field');if(rf)rf.style.display=tab==='signup'?'':'none';
+  // Pre-fill referral code from URL if present
+  if(tab==='signup'){
+    var urlParams=new URLSearchParams(window.location.search);
+    var refCode=urlParams.get('ref');
+    var refInput=document.getElementById('auth-referral');
+    if(refCode&&refInput)refInput.value=refCode.toUpperCase();
+  }
 }
 async function resendConfirm(){
   const btn=document.getElementById('resend-btn');
@@ -1002,7 +1035,14 @@ async function handleAuth(){
       document.getElementById('auth-email').value='';
       document.getElementById('auth-password').value='';
       document.getElementById('auth-name').value='';
-      showConfirmScreen(email);
+      // Process referral code if present
+var refCodeInput=document.getElementById('auth-referral');
+var refCode=refCodeInput?refCodeInput.value.trim():'';
+if(!refCode){var urlParams=new URLSearchParams(window.location.search);refCode=urlParams.get('ref')||'';}
+if(refCode&&result.data&&result.data.user){
+  setTimeout(function(){processReferral(refCode,result.data.user.id);},2000);
+}
+showConfirmScreen(email);
     }else{
       result=await sb.auth.signInWithPassword({email,password:pwd});
       if(result.error)throw result.error;
@@ -1299,11 +1339,99 @@ function rSavings(){
 }
 
 function rShared(){
-  const members=S.members||[];
-  const sp=document.getElementById('shared-pot');if(sp)sp.textContent=fmt(members.reduce((s,m)=>s+Number(m.contribution||0),0));
-  const ml=document.getElementById('member-list');if(ml)ml.innerHTML=members.map(m=>'<div class="member"><div class="avatar" style="background:'+(m.color||'#5b7fe8')+'">'+(m.name||'?').charAt(0).toUpperCase()+'</div><div class="member-info"><div class="member-name">'+m.name+(m.isMe?' (You)':'')+'</div><div class="member-role">Salary: '+fmt(m.salary||0)+'</div></div>'+(m.isMe?'<span class="owner-tag">Owner</span>':'<button class="btn dan sm" onclick="delMember(\''+m.id+'\')">Remove</button>')+'</div>').join('');
-  const stb=document.getElementById('shared-tbody');if(stb)stb.innerHTML=members.map(m=>{const spent=(S.transactions||[]).filter(t=>(t.memberId||'me')===m.id).reduce((s,t)=>s+t.amount,0);return '<tr><td>'+m.name+'</td><td>'+fmt(m.salary||0)+'</td><td>'+fmt(m.contribution||0)+'</td><td>'+fmt(spent)+'</td><td class="'+(m.contribution-spent>=0?'good':'bad')+'">'+fmt(m.contribution-spent)+'</td></tr>';}).join('')||'<tr><td colspan="5" class="empty">No members.</td></tr>';
+  var gate=document.getElementById('shared-premium-gate');
+  var cont=document.getElementById('shared-content');
+  if(gate&&cont){
+    if(!isPremium()){gate.style.display='';cont.style.opacity='.5';cont.style.pointerEvents='none';}
+    else{gate.style.display='none';cont.style.opacity='';cont.style.pointerEvents='';loadSharedBudgets();}
+  }
 }
+async function loadSharedBudgets(){
+  if(!currentUser)return;
+  var list=document.getElementById('shared-budgets-list');if(!list)return;
+  try{
+    var owned=await sb.from('shared_budgets').select('id,name,invite_code').eq('owner_id',currentUser.id);
+    var budgets=owned.data||[];
+    if(!budgets.length){list.innerHTML='<div class="empty">No shared budgets yet.</div>';return;}
+    var html='';
+    budgets.forEach(function(b){
+      html+='<div class="list-line"><div style="flex:1"><div style="font-size:13px;font-weight:600">'+b.name+'</div>';
+      html+='<div style="font-size:11px;color:var(--text3)">Code: '+(b.invite_code||'--')+'</div></div>';
+      html+='<button class="btn sec sm" data-bid="'+b.id+'" data-bname="'+b.name.replace(/"/g,'')+'">Open</button></div>';
+    });
+    list.innerHTML=html;
+    list.querySelectorAll('[data-bid]').forEach(function(btn){
+      btn.addEventListener('click',function(){openSharedBudget(this.dataset.bid,this.dataset.bname);});
+    });
+  }catch(e){list.innerHTML='<div class="empty">Error: '+e.message+'</div>';}
+}
+async function createSharedBudget(){
+  if(!currentUser){showToast('Please sign in first.');return;}
+  if(!isPremium()){showToast('Shared budgets require Premium.');goTo('upgrade');return;}
+  var nameEl=document.getElementById('sb-name');
+  var name=(nameEl&&nameEl.value.trim())||'Shared Budget';
+  try{
+    var chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    var code='';for(var i=0;i<8;i++)code+=chars.charAt(Math.floor(Math.random()*chars.length));
+    var r=await sb.from('shared_budgets').insert({owner_id:currentUser.id,name:name,invite_code:code}).select().single();
+    if(r.error)throw r.error;
+    await sb.from('shared_budget_members').insert({budget_id:r.data.id,user_id:currentUser.id,role:'owner'});
+    if(nameEl)nameEl.value='';
+    showToast('Created! Code: '+code);
+    loadSharedBudgets();
+    openSharedBudget(r.data.id,name);
+  }catch(e){showToast('Error: '+e.message);console.error(e);}
+}
+async function joinSharedBudget(){
+  if(!currentUser){showToast('Please sign in first.');return;}
+  if(!isPremium()){showToast('Shared budgets require Premium.');goTo('upgrade');return;}
+  var codeEl=document.getElementById('sb-invite-code');
+  var msg=document.getElementById('sb-join-msg');
+  var code=(codeEl&&codeEl.value.trim().toUpperCase())||'';
+  if(code.length<6){if(msg)msg.textContent='Enter a valid invite code.';return;}
+  try{
+    var r=await sb.from('shared_budgets').select('id,name').eq('invite_code',code).single();
+    if(r.error||!r.data){if(msg)msg.textContent='Invalid code.';return;}
+    var budget=r.data;
+    var ex=await sb.from('shared_budget_members').select('id').eq('budget_id',budget.id).eq('user_id',currentUser.id);
+    if(ex.data&&ex.data.length){if(msg)msg.textContent='Already a member.';return;}
+    await sb.from('shared_budget_members').insert({budget_id:budget.id,user_id:currentUser.id,role:'member'});
+    showToast('Joined '+budget.name+'!');
+    if(msg)msg.textContent='';if(codeEl)codeEl.value='';
+    loadSharedBudgets();openSharedBudget(budget.id,budget.name);
+  }catch(e){if(msg)msg.textContent='Error: '+e.message;}
+}
+async function openSharedBudget(id,name){
+  var detail=document.getElementById('shared-budget-detail');if(detail)detail.style.display='';
+  var dn=document.getElementById('sb-detail-name');if(dn)dn.textContent=name;
+  window._currentSharedBudgetId=id;
+  try{
+    var r=await sb.from('shared_budgets').select('invite_code').eq('id',id).single();
+    var ic=document.getElementById('sb-invite-display');if(ic&&r.data)ic.textContent=r.data.invite_code||'--';
+    var mem=await sb.from('shared_budget_members').select('user_id,role,profiles(name)').eq('budget_id',id);
+    var ml=document.getElementById('sb-members-list');
+    if(ml&&mem.data){
+      if(!mem.data.length){ml.innerHTML='<div class="empty">No members.</div>';return;}
+      var mhtml='';
+      mem.data.forEach(function(m){
+        var n=m.profiles&&m.profiles.name?m.profiles.name:'Member';
+        mhtml+='<div class="member"><div class="avatar" style="background:var(--accent)">'+n.charAt(0).toUpperCase()+'</div>';
+        mhtml+='<div class="member-info"><div class="member-name">'+n+(m.user_id===currentUser.id?' (You)':'')+'</div>';
+        mhtml+='<div class="member-role">'+m.role+'</div></div>'+(m.role==='owner'?'<span class="owner-tag">Owner</span>':'')+'</div>';
+      });
+      ml.innerHTML=mhtml;
+    }
+    var tl=document.getElementById('sb-transactions-list');if(tl)tl.innerHTML='<div class="empty">No shared transactions yet.</div>';
+  }catch(e){console.error('openSharedBudget error:',e);}
+}
+function copyInviteCode(){
+  var ic=document.getElementById('sb-invite-display');if(!ic)return;
+  var code=ic.textContent;
+  if(navigator.clipboard){navigator.clipboard.writeText(code).then(function(){showToast('Copied: '+code);}).catch(function(){showToast('Code: '+code);});}
+  else showToast('Code: '+code);
+}
+function addMember(){goTo('shared');}
+function delMember(id){S.members=(S.members||[]).filter(function(m){return m.id!==id;});persist();rShared();}
 
 function rSettings(){
   const fields={
@@ -1544,6 +1672,7 @@ function rProfile(){
   const av=document.getElementById('prof-avatar');
   if(av){av.textContent=name.charAt(0).toUpperCase();av.style.background=S.profile?.avatarColor||'var(--accent)';}
   const nd=document.getElementById('prof-name-display');if(nd)nd.textContent=name;
+  updateReferralUI();
   var bb=document.getElementById('prof-billing-btn');
   if(bb){if(isPremium()){bb.innerHTML='<button class="btn" style="width:100%;margin-bottom:8px;background:var(--amber)" onclick="openBillingPortal()">⭐ Manage subscription</button>';}else{bb.innerHTML='<button class="btn" style="width:100%;margin-bottom:8px" onclick="goTo(\'upgrade\')">⭐ Upgrade to Premium</button>';}}
   const ed=document.getElementById('prof-email-display');if(ed)ed.textContent=email;
@@ -2166,6 +2295,71 @@ async function exportTripPDF(){
 }
 
 function bycat2(trip){var r={};trip.expenses.forEach(function(e){r[e.cat]=(r[e.cat]||0)+e.amt;});return r;}
+
+// REFERRAL PROGRAM
+function getReferralCode(){
+  if(!currentUser)return null;
+  // Generate deterministic code from user id
+  var id=currentUser.id.replace(/-/g,'').substring(0,8).toUpperCase();
+  return id;
+}
+
+function updateReferralUI(){
+  var code=getReferralCode();
+  var el=document.getElementById('ref-code-display');
+  if(el)el.textContent=code||'Sign in to get your code';
+  loadReferralStats();
+}
+
+async function loadReferralStats(){
+  if(!currentUser)return;
+  try{
+    var r=await sb.from('referrals').select('id,status').eq('referrer_id',currentUser.id);
+    var count=r.data?r.data.length:0;
+    var converted=r.data?r.data.filter(function(x){return x.status==='converted';}).length:0;
+    var el=document.getElementById('ref-count');if(el)el.textContent=count;
+    var es=document.getElementById('ref-scans-earned');if(es)es.textContent=converted*10;
+  }catch(e){
+    // Table may not exist yet - silently fail
+  }
+}
+
+function copyReferralCode(){
+  var code=getReferralCode();if(!code)return;
+  var url=window.location.origin+'?ref='+code;
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(url).then(function(){showToast('Referral link copied!');}).catch(function(){showToast('Your code: '+code);});
+  }else{showToast('Your code: '+code);}
+}
+
+function shareReferral(){
+  var code=getReferralCode();if(!code)return;
+  var url=window.location.origin+'?ref='+code;
+  var text='I use BudgetFlow to manage my finances. Sign up with my code and get 5 free AI scans: '+url;
+  if(navigator.share){navigator.share({title:'BudgetFlow',text:text,url:url}).catch(function(){copyReferralCode();});}
+  else{copyReferralCode();}
+}
+
+async function processReferral(referralCode, newUserId){
+  if(!referralCode||!newUserId)return;
+  try{
+    // Find referrer by their code (first 8 chars of UUID without dashes)
+    var allProfiles=await sb.from('profiles').select('id');
+    if(!allProfiles.data)return;
+    var referrer=allProfiles.data.find(function(p){
+      return p.id.replace(/-/g,'').substring(0,8).toUpperCase()===referralCode.toUpperCase();
+    });
+    if(!referrer||referrer.id===newUserId)return;
+    // Record referral
+    await sb.from('referrals').insert({referrer_id:referrer.id,referred_id:newUserId,status:'pending',referral_code:referralCode}).catch(function(){});
+    // Give referred user +5 bonus scans
+    var refProfile=await sb.from('profiles').select('ai_scans_used').eq('id',newUserId).single();
+    if(refProfile.data){
+      var currentUsed=Math.max(0,(refProfile.data.ai_scans_used||0)-5);
+      await sb.from('profiles').update({ai_scans_used:currentUsed,referral_bonus:5}).eq('id',newUserId).catch(function(){});
+    }
+  }catch(e){console.log('Referral processing error:',e);}
+}
 
 // PASSWORD VISIBILITY
 function togglePwdVis(inputId,icon){
