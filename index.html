@@ -302,6 +302,8 @@ input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent);cursor:po
 .plan-tbl td:first-child{text-align:left;font-size:13px;color:var(--text);font-weight:600;}
 .plan-tbl tr.cur td{background:var(--accent-dim);}
 /* RESPONSIVE */
+.blurred-money{filter:blur(5px);user-select:none;cursor:pointer;display:inline-block;transition:filter .2s;}
+.blurred-money:hover{filter:none;}
 @media(max-width:768px){
   .sidebar{display:none;}
   .mobile-nav{display:flex;}
@@ -350,7 +352,12 @@ input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent);cursor:po
       <label>Your name</label><input type="text" id="auth-name" placeholder="e.g. Sakr">
     </div>
     <div class="auth-field"><label>Email</label><input type="email" id="auth-email" placeholder="you@example.com"></div>
-    <div class="auth-field"><label>Password</label><input type="password" id="auth-password" placeholder="Password"></div>
+    <div class="auth-field"><label>Password</label>
+      <div style="position:relative">
+        <input type="password" id="auth-password" placeholder="Password" style="padding-right:40px;width:100%">
+        <span onclick="togglePwdVis('auth-password',this)" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:16px;color:var(--text3)">👁️</span>
+      </div>
+    </div>
     <button class="auth-btn" id="auth-submit" onclick="handleAuth()">Sign in</button>
     <div style="text-align:center;margin-bottom:4px"><span style="font-size:12px;color:var(--accent);cursor:pointer;text-decoration:underline" id="forgot-link" onclick="showForgotPassword()">Forgot password?</span></div>
     <div class="auth-divider">or</div>
@@ -418,6 +425,7 @@ input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent);cursor:po
     <div class="ph-l"><h1>Dashboard</h1><p id="dcycle"></p></div>
     <div class="ph-r">
       <button class="btn sec sm" onclick="startTour()">👋 Tour</button>
+      <button class="theme-btn" id="privacy-btn" onclick="togglePrivacy()"><span id="privacy-ic">👁️</span> <span id="privacy-lbl">Hide</span></button>
       <button class="theme-btn" onclick="toggleTheme()"><span id="tico2">🌙</span><span id="tlbl">Dark</span></button>
     </div>
   </div>
@@ -579,7 +587,7 @@ input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent);cursor:po
       <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
         <div class="stitle">Change password</div>
         <div style="display:flex;gap:8px;align-items:flex-end">
-          <div class="field" style="flex:1"><label>New password</label><input id="p-new-pwd" type="password" placeholder="Min 6 characters"></div>
+          <div class="field" style="flex:1"><label>New password</label><div style="position:relative"><input id="p-new-pwd" type="password" placeholder="Min 6 characters" style="padding-right:36px"><span onclick="togglePwdVis('p-new-pwd',this)" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:15px;color:var(--text3)">👁️</span></div></div>
           <button class="btn sm" style="margin-bottom:0;height:39px;flex-shrink:0" onclick="changePassword()">Update</button>
         </div>
         <div id="pwd-change-msg" style="font-size:12px;color:var(--text2);margin-top:6px"></div>
@@ -989,10 +997,10 @@ function rDash(){
   const aa=document.getElementById('alert-area');if(aa)aa.innerHTML=alerts.map(a=>'<div class="notice '+a.t+'" style="margin-bottom:7px">'+a.m+'</div>').join('');
   const kpis=document.getElementById('kpis');
   if(kpis)kpis.innerHTML=
-    '<div class="card kpi '+(rem<0?'gr':'')+'"><label>Remaining</label><b class="'+(rem<0?'bad':rem<S.salary*0.1?'warn':'good')+'">'+fmt(rem)+'</b><small>of '+fmt(S.salary)+'</small></div>'+
-    '<div class="card kpi '+(ft<0?'gr':ft<1500?'ga':'')+'"><label>Free to spend</label><b class="'+(ft<0?'bad':ft<1500?'warn':'blue')+'">'+fmt(Math.max(0,ft))+'</b><small>'+(dl>0?fmt(daily)+'/day · ':'')+dl+' days left</small></div>'+
-    '<div class="card kpi"><label>Commitments</label><b class="purp">'+fmt(ct)+'</b><small>'+aCommits().filter(c=>cpaid(c.id).paid).length+'/'+aCommits().length+' paid</small></div>'+
-    '<div class="card kpi '+(ov?'gg':'')+'"><label>Savings '+(ov?'🔥':'')+'</label><b class="'+(ov?'good':'blue')+'">'+fmt(S.goal.saved)+'</b><small>'+pct+'% of '+fmt(S.goal.target)+'</small></div>';
+    '<div class="card kpi '+(rem<0?'gr':'')+'"><label>Remaining</label><b class="'+(rem<0?'bad':rem<S.salary*0.1?'warn':'good')+'">'+pFmt(rem)+'</b><small>of '+pFmt(S.salary)+'</small></div>'+
+    '<div class="card kpi '+(ft<0?'gr':ft<1500?'ga':'')+'"><label>Free to spend</label><b class="'+(ft<0?'bad':ft<1500?'warn':'blue')+'">'+pFmt(Math.max(0,ft))+'</b><small>'+(dl>0&&!privacyOn?fmt(daily)+'/day · ':'')+dl+' days left</small></div>'+
+    '<div class="card kpi"><label>Commitments</label><b class="purp">'+pFmt(ct)+'</b><small>'+aCommits().filter(c=>cpaid(c.id).paid).length+'/'+aCommits().length+' paid</small></div>'+
+    '<div class="card kpi '+(ov?'gg':'')+'"><label>Savings '+(ov?'🔥':'')+'</label><b class="'+(ov?'good':'blue')+'">'+pFmt(S.goal.saved)+'</b><small>'+pct+'% of target</small></div>';
   const pc=document.getElementById('prog-card');
   if(pc){const bc=ov?'over':pct>=50?'':'behind';pc.innerHTML='<div class="card-title">🎯 '+(S.goal.name||'Savings goal')+(S.goal.date?' · by '+new Date(S.goal.date+' 00:00:00').toLocaleDateString('en',{day:'numeric',month:'short',year:'numeric'}):'')+' </div><div class="prog-row"><span>'+fmt(S.goal.saved)+' saved of '+fmt(S.goal.target)+'</span><b style="color:'+(ov?'var(--green)':'var(--accent)')+'">'+pct+'%</b></div><div class="prog-bar"><div class="prog-fill '+bc+'" style="width:'+pct+'%"></div></div><div class="notice info" style="margin-top:8px">Save '+fmt(needed())+' per month for '+months()+' month(s) to reach your target.</div>';}
   const txs=cTxs(),ctc={};txs.forEach(t=>{ctc[t.catId]=(ctc[t.catId]||0)+t.amount;});
@@ -1003,7 +1011,7 @@ function rDash(){
   if(dc2)dc2.innerHTML=coms.length?coms.map(c=>{
     const ps=cpaid(c.id),ip=ps.paid;
     return '<div class="ci '+(ip?'':'up')+'"><div class="ci-l"><div class="ldot" style="background:'+(ip?'var(--green)':'var(--amber)')+'"></div><div><div class="ci-name">'+c.name+'</div><div class="ci-meta">'+(c.type||'Fixed')+(c.end?' · ends '+c.end:'')+'</div></div></div><div class="ci-r"><div class="ci-amt '+(ip?'good':'bad')+'">'+fmt(ps.amount||c.amount)+'</div><span class="pbadge '+(ip?'paid':'up')+'">'+(ip?'✓ Paid':'Unpaid')+'</span><button class="mark-paid-btn '+(ip?'undo':'')+'" onclick="setCpaid(\''+c.id+'\','+(ip?'false':'true')+','+(ps.amount||c.amount)+');renderAll()">'+(ip?'Undo':'Mark paid')+'</button></div></div>';
-  }).join('')+'<div style="display:flex;justify-content:space-between;padding:8px 0 0;font-size:13px;font-weight:700;border-top:1px solid var(--border);margin-top:4px"><span style="color:var(--text2)">Total</span><span class="purp">'+fmt(ct)+'</span></div>'
+  }).join('')+'<div style="display:flex;justify-content:space-between;padding:8px 0 0;font-size:13px;font-weight:700;border-top:1px solid var(--border);margin-top:4px"><span style="color:var(--text2)">Total</span><span class="purp">'+pFmt(ct)+'</span></div>'
   :'<div class="empty">No commitments. Add in Settings.</div>';
 }
 
@@ -1426,6 +1434,30 @@ async function deleteAccount(){
 }
 
 // INIT
+// PASSWORD VISIBILITY
+function togglePwdVis(inputId,icon){
+  var inp=document.getElementById(inputId);
+  if(!inp)return;
+  if(inp.type==='password'){inp.type='text';if(icon)icon.textContent='\uD83D\uDE48';}
+  else{inp.type='password';if(icon)icon.textContent='\uD83D\uDC41\uFE0F';}
+}
+
+// PRIVACY MODE
+var privacyOn=false;
+function togglePrivacy(){
+  privacyOn=!privacyOn;
+  var ic=document.getElementById('privacy-ic');
+  var lb=document.getElementById('privacy-lbl');
+  if(ic)ic.textContent=privacyOn?'\uD83D\uDE48':'\uD83D\uDC41\uFE0F';
+  if(lb)lb.textContent=privacyOn?'Show':'Hide';
+  rDash();
+}
+function pFmt(n,d){
+  d=d||0;
+  if(!privacyOn)return fmt(n,d);
+  return '<span class="blurred-money">'+fmt(n,d)+'</span>';
+}
+
 // Handle password reset redirect
 if(window.location.search.includes('reset=1')||window.location.hash.includes('type=recovery')){
   sb.auth.getSession().then(({data:{session}})=>{
