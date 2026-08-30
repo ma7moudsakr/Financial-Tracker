@@ -78,10 +78,10 @@ button,input,select{font-family:inherit;}
 .page.on{display:block;animation:fi .15s ease;}
 @keyframes fi{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
 /* MOBILE */
-.mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;height:var(--nav-h);background:var(--surface);border-top:1px solid var(--border);z-index:100;flex-direction:row;}
-.mnb{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:10px;font-weight:600;color:var(--text3);border:none;background:none;cursor:pointer;padding:6px 0;}
-.mnb.on{color:var(--accent);}
-.mnb-ic{font-size:20px;}
+.dnb{width:100%;background:none;border:none;text-align:left;padding:10px 12px;border-radius:var(--r-sm);font-size:13px;font-weight:500;color:var(--text2);cursor:pointer;display:flex;align-items:center;gap:10px;margin-bottom:2px;transition:all .12s;}
+.dnb:hover{background:var(--surface2);color:var(--text);}
+.dnb.on{background:var(--accent-dim);color:var(--accent);}
+.dnb span{font-size:16px;width:20px;text-align:center;flex-shrink:0;}
 .mobile-header{display:none;position:fixed;top:0;left:0;right:0;height:52px;background:var(--surface);border-bottom:1px solid var(--border);z-index:99;align-items:center;padding:0 16px;justify-content:space-between;}
 .mobile-header h2{font-size:16px;font-weight:700;}
 /* PAGE HEADER */
@@ -101,7 +101,7 @@ button,input,select{font-family:inherit;}
 .theme-btn{background:var(--surface2);border:1px solid var(--border);border-radius:99px;padding:6px 13px;font-size:12px;font-weight:500;color:var(--text2);cursor:pointer;display:flex;align-items:center;gap:6px;}
 #toast{position:fixed;right:20px;bottom:80px;background:var(--text);color:var(--surface);padding:11px 16px;border-radius:var(--r-sm);font-size:13px;font-weight:600;opacity:0;transform:translateY(8px);transition:.2s;pointer-events:none;z-index:9999;}
 #toast.show{opacity:1;transform:none;}
-@media(min-width:769px){#toast{bottom:20px;}#help-fab{bottom:20px;}}
+@media(min-width:769px){#toast{bottom:20px;}#help-fab{bottom:20px;}} @media(max-width:768px){#help-fab{bottom:20px;right:16px;}}
 /* GRID & CARDS */
 .grid{display:grid;gap:12px;}
 .g2{grid-template-columns:1fr 1fr;}
@@ -304,13 +304,14 @@ input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent);cursor:po
 .plan-tbl tr.cur td{background:var(--accent-dim);}
 /* RESPONSIVE */
 .blurred-money{filter:blur(5px);user-select:none;cursor:pointer;display:inline-block;transition:filter .2s;}
+@media(max-width:768px){.desk-only{display:none!important;}}
 .blurred-money:hover{filter:none;}
 @media(max-width:768px){
   .sidebar{display:none;}
-  .mobile-nav{display:flex;}
   .mobile-header{display:flex;}
-  .main{padding:70px 14px 80px;}
+  .main{padding:64px 14px 20px;}
   .g4{grid-template-columns:1fr 1fr;}
+  .kpi b{font-size:20px;}
   .g2{grid-template-columns:1fr;}
   .f4{grid-template-columns:1fr 1fr;}
   .f3{grid-template-columns:1fr 1fr;}
@@ -389,8 +390,49 @@ input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent);cursor:po
 </div>
 <div id="toast"></div>
 <div class="mobile-header">
+  <button onclick="openDrawer()" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--text);padding:4px 8px;margin-left:-4px">☰</button>
   <h2 id="mob-title">Dashboard</h2>
-  <button class="theme-btn" onclick="toggleTheme()" style="padding:5px 10px"><span id="tico">🌙</span></button>
+  <div style="display:flex;gap:6px;align-items:center">
+    <button onclick="showShowcase()" style="background:none;border:none;font-size:18px;cursor:pointer;padding:4px">✨</button>
+    <button class="theme-btn" onclick="toggleTheme()" style="padding:5px 8px"><span id="tico">🌙</span></button>
+  </div>
+</div>
+<!-- MOBILE DRAWER OVERLAY -->
+<div id="drawer-overlay" onclick="closeDrawer()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300"></div>
+<!-- MOBILE DRAWER -->
+<div id="mobile-drawer" style="position:fixed;top:0;left:-280px;width:280px;height:100vh;background:var(--surface);z-index:301;transition:left .25s ease;display:flex;flex-direction:column;overflow-y:auto;box-shadow:4px 0 20px rgba(0,0,0,.2)">
+  <div style="padding:20px 16px 14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+    <div style="font-size:19px;font-weight:800;color:var(--text)">Budget<span style="color:var(--accent)">Flow</span></div>
+    <button onclick="closeDrawer()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--text3)">✕</button>
+  </div>
+  <div id="drawer-user" style="padding:12px 16px;border-bottom:1px solid var(--border);display:none;cursor:pointer" onclick="drawerGoTo('profile')">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div id="drawer-av" style="width:36px;height:36px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700">?</div>
+      <div>
+        <div id="drawer-nm" style="font-size:13px;font-weight:700;color:var(--text)">User</div>
+        <div id="drawer-tier" style="font-size:10px;color:var(--text3)">Free plan</div>
+      </div>
+    </div>
+  </div>
+  <nav style="padding:10px 8px;flex:1">
+    <button class="dnb on" onclick="drawerGoTo('dashboard')"><span>📊</span>Dashboard</button>
+    <button class="dnb" onclick="drawerGoTo('expenses')"><span>➕</span>Expenses &amp; Receipts</button>
+    <button class="dnb" onclick="drawerGoTo('weekly')"><span>📅</span>Weekly Tracker</button>
+    <button class="dnb" onclick="drawerGoTo('planner')"><span>🗓️</span>Planner</button>
+    <button class="dnb" onclick="drawerGoTo('savings')"><span>🎯</span>Savings Plan</button>
+    <button class="dnb" onclick="drawerGoTo('trips')"><span>✈️</span>Expense Reports</button>
+    <button class="dnb" onclick="drawerGoTo('shared')"><span>👥</span>Shared Budget</button>
+    <button class="dnb" onclick="drawerGoTo('data')"><span>📤</span>Import &amp; Export</button>
+    <div style="height:1px;background:var(--border);margin:8px 4px"></div>
+    <button class="dnb" onclick="drawerGoTo('profile')"><span>👤</span>My Profile</button>
+    <button class="dnb" id="drawer-upgrade" onclick="drawerGoTo('upgrade')" style="color:var(--amber)"><span>⭐</span>Go Premium</button>
+    <button class="dnb" onclick="drawerGoTo('settings')"><span>⚙️</span>Settings</button>
+  </nav>
+  <div style="padding:12px 16px;border-top:1px solid var(--border)">
+    <button class="btn sec" style="width:100%;font-size:12px" onclick="closeDrawer();toggleHelp()">❓ Help &amp; FAQ</button>
+    <button class="btn sec" style="width:100%;margin-top:6px;font-size:12px" onclick="closeDrawer();showWizard()">⚙️ Setup wizard</button>
+    <button class="btn sec" style="width:100%;margin-top:6px;font-size:12px" onclick="closeDrawer();if(confirm('Sign out?'))signOut()">↩ Sign out</button>
+  </div>
 </div>
 <div class="app">
 <aside class="sidebar">
@@ -418,13 +460,7 @@ input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent);cursor:po
     <p style="margin-top:6px"><button class="btn sec" style="font-size:11px;padding:4px 8px;width:100%" onclick="showWizard()">⚙️ Setup wizard</button></p>
   </div>
 </aside>
-<nav class="mobile-nav">
-  <button class="mnb on" onclick="goTo('dashboard')"><span class="mnb-ic">📊</span>Home</button>
-  <button class="mnb" onclick="goTo('expenses')"><span class="mnb-ic">➕</span>Expenses</button>
-  <button class="mnb" onclick="goTo('weekly')"><span class="mnb-ic">📅</span>Weekly</button>
-  <button class="mnb" onclick="goTo('savings')"><span class="mnb-ic">🎯</span>Savings</button>
-  <button class="mnb" onclick="goTo('settings')"><span class="mnb-ic">⚙️</span>Settings</button>
-</nav>
+
 <main class="main">
 <!-- DASHBOARD -->
 <div id="page-dashboard" class="page on">
@@ -598,7 +634,7 @@ input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent);cursor:po
   <!-- New trip form -->
   <div id="new-trip-form" class="card" style="margin-bottom:16px;display:none">
     <div class="card-title">New expense report</div>
-    <div class="fields f2" style="margin-bottom:12px">
+    <div class="fields f2" style="margin-bottom:12px" id="trip-form-grid">
       <div class="field"><label>Trip name</label><input id="t-name" placeholder="e.g. Dubai Sales Conference"></div>
       <div class="field"><label>Destination</label><input id="t-dest" placeholder="e.g. Dubai, UAE"></div>
       <div class="field"><label>Start date</label><input type="date" id="t-start"></div>
@@ -672,7 +708,7 @@ input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent);cursor:po
   </div>
 
   <!-- Export modal -->
-  <div id="export-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;align-items:center;justify-content:center;padding:16px">
+  <div id="export-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;align-items:flex-end;justify-content:center;padding:0">
     <div class="card" style="max-width:480px;width:100%;max-height:90vh;overflow-y:auto">
       <div class="card-title">Export expense report
         <button onclick="document.getElementById('export-modal').style.display='none'" style="background:none;border:none;font-size:18px;cursor:pointer;color:var(--text3)">✕</button>
@@ -714,7 +750,7 @@ input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent);cursor:po
 <div id="page-upgrade" class="page">
   <div class="ph"><div class="ph-l"><h1>Go Premium ⭐</h1><p>Unlock the full BudgetFlow experience.</p></div></div>
   <div id="upgrade-status" style="margin-bottom:16px"></div>
-  <div class="grid g3" style="margin-bottom:20px" id="plan-cards">
+  <div class="grid g3" style="margin-bottom:20px;padding:0 2px" id="plan-cards">
     <div class="card" style="border:2px solid var(--border);text-align:center;padding:24px;position:relative">
       <div style="font-size:13px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Weekly</div>
       <div style="font-size:36px;font-weight:800;color:var(--text);margin-bottom:2px">2.99 <span style="font-size:14px;color:var(--text3)">USD</span></div>
@@ -885,8 +921,8 @@ input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent);cursor:po
 </div>
 
 <!-- HELP / FAQ MODAL -->
-<div id="help-modal" style="display:none;position:fixed;inset:0;background:rgba(10,14,28,.7);backdrop-filter:blur(4px);z-index:9994;align-items:flex-end;justify-content:flex-end;padding:20px">
-  <div style="background:var(--surface);border-radius:var(--r);width:100%;max-width:400px;height:75vh;display:flex;flex-direction:column;box-shadow:0 24px 80px rgba(0,0,0,.3)">
+<div id="help-modal" style="display:none;position:fixed;inset:0;background:rgba(10,14,28,.7);backdrop-filter:blur(4px);z-index:9994;align-items:flex-end;justify-content:center;padding:0">
+  <div style="background:var(--surface);border-radius:var(--r) var(--r) 0 0;width:100%;max-width:480px;height:80vh;display:flex;flex-direction:column;box-shadow:0 24px 80px rgba(0,0,0,.3)">
     <!-- Header -->
     <div style="padding:16px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
       <div>
@@ -1135,6 +1171,7 @@ function onSignIn(user){
   if(!S.name)S.name=name;
   document.getElementById('user-pill').style.display='flex';
   var fab=document.getElementById('help-fab');if(fab)fab.style.display='flex';
+  updateDrawerUser();
   document.getElementById('user-av').textContent=name.charAt(0).toUpperCase();
   document.getElementById('user-nm').textContent=name;
   persist();
@@ -1149,11 +1186,17 @@ sb.auth.onAuthStateChange((_,session)=>{if(session?.user&&!currentUser)onSignIn(
 // NAV
 function goTo(pg){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
-  document.querySelectorAll('.nb,.mnb').forEach(n=>n.classList.remove('on'));
+  document.querySelectorAll('.nb,.dnb').forEach(n=>n.classList.remove('on'));
   document.getElementById('page-'+pg).classList.add('on');
-  document.querySelectorAll('.nb,.mnb').forEach(n=>{if(n.textContent.trim().toLowerCase().replace(/[^a-z]/g,'').startsWith(pg.slice(0,5)))n.classList.add('on');});
-  const titles={dashboard:'Dashboard',expenses:'Expenses',weekly:'Weekly',planner:'Planner',savings:'Savings',shared:'Shared',data:'Export',settings:'Settings',profile:'My Profile',upgrade:'Go Premium',trips:'Expense Reports'};
-  document.getElementById('mob-title').textContent=titles[pg]||'BudgetFlow';
+  document.querySelectorAll('.nb,.dnb').forEach(n=>{
+    var txt=n.textContent.trim().toLowerCase().replace(/[^a-z]/g,'');
+    if(txt.startsWith(pg.slice(0,5))||
+      (pg==='trips'&&txt.includes('expense'))||
+      (pg==='upgrade'&&txt.includes('premium'))||
+      (pg==='data'&&txt.includes('import')))n.classList.add('on');
+  });
+  const titles={dashboard:'Dashboard',expenses:'Expenses & Receipts',weekly:'Weekly Tracker',planner:'Planner',savings:'Savings Plan',shared:'Shared Budget',data:'Import & Export',settings:'Settings',profile:'My Profile',upgrade:'Go Premium',trips:'Expense Reports'};
+  var mt=document.getElementById('mob-title');if(mt)mt.textContent=titles[pg]||'BudgetFlow';
   renderAll();
 }
 function toggleTheme(){
@@ -1884,6 +1927,7 @@ function updateUpgradeNav(){
   else{nav.style.display='';}
   var badge=document.getElementById('user-tier-badge');
   if(badge)badge.textContent=isPremium()?'⭐ PREMIUM':'FREE PLAN';
+  updateDrawerUser();
 }
 
 function updateUpgradeUI(){
@@ -2398,6 +2442,31 @@ async function processReferral(referralCode, newUserId){
       await sb.from('profiles').update({ai_scans_used:currentUsed,referral_bonus:5}).eq('id',newUserId).catch(function(){});
     }
   }catch(e){console.log('Referral processing error:',e);}
+}
+
+// MOBILE DRAWER
+function openDrawer(){
+  document.getElementById('mobile-drawer').style.left='0';
+  document.getElementById('drawer-overlay').style.display='block';
+  document.body.style.overflow='hidden';
+}
+function closeDrawer(){
+  document.getElementById('mobile-drawer').style.left='-280px';
+  document.getElementById('drawer-overlay').style.display='none';
+  document.body.style.overflow='';
+}
+function drawerGoTo(pg){
+  closeDrawer();
+  goTo(pg);
+}
+function updateDrawerUser(){
+  if(!currentUser)return;
+  var du=document.getElementById('drawer-user');if(du)du.style.display='';
+  var name=S.name||currentUser.user_metadata?.name||'User';
+  var av=document.getElementById('drawer-av');if(av)av.textContent=name.charAt(0).toUpperCase();
+  var nm=document.getElementById('drawer-nm');if(nm)nm.textContent=name;
+  var tier=document.getElementById('drawer-tier');if(tier)tier.textContent=isPremium()?'⭐ Premium':'Free plan';
+  var upBtn=document.getElementById('drawer-upgrade');if(upBtn)upBtn.style.display=isPremium()?'none':'';
 }
 
 // PASSWORD VISIBILITY
