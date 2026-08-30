@@ -795,7 +795,7 @@ input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent);cursor:po
           <tr><td>Price</td><td style="text-align:center">Free</td><td style="text-align:center">2.99 USD/wk</td><td style="text-align:center">4.99 USD/mo</td><td style="text-align:center;color:var(--green);font-weight:700">39.99 USD/yr</td></tr>
           <tr><td>AI scans (receipts + imports)</td><td style="text-align:center;color:var(--red)">3 lifetime total<br><span style="font-size:10px;color:var(--text3)">(receipts + imports combined)</span></td><td style="text-align:center;color:var(--accent)">20/week</td><td style="text-align:center;color:var(--accent)">50/month</td><td style="text-align:center;color:var(--green)">100/month</td></tr>
           <tr><td>AI smart import</td><td style="text-align:center;color:var(--red);font-size:11px">Same 3-scan pool<br><span style="color:var(--text3)">scans + imports combined</span></td><td style="text-align:center;color:var(--accent)">✓ Same pool as scans</td><td style="text-align:center;color:var(--accent)">✓ Same pool as scans</td><td style="text-align:center;color:var(--green)">✓ Same pool as scans</td></tr>
-          <tr><td>PDF export</td><td style="text-align:center;color:var(--red)">✗</td><td style="text-align:center;color:var(--accent)">✓</td><td style="text-align:center;color:var(--accent)">✓</td><td style="text-align:center;color:var(--green)">✓</td></tr>
+          <tr><td>PDF export (budget)</td><td style="text-align:center;color:var(--green)">✓ Free</td><td style="text-align:center;color:var(--accent)">✓</td><td style="text-align:center;color:var(--accent)">✓</td><td style="text-align:center;color:var(--green)">✓</td></tr>
           <tr><td>Expense report PDF</td><td style="text-align:center;color:var(--amber)">1 free trial</td><td style="text-align:center;color:var(--accent)">✓</td><td style="text-align:center;color:var(--accent)">✓</td><td style="text-align:center;color:var(--green)">✓</td></tr>
           <tr><td>Receipt cloud storage</td><td style="text-align:center;color:var(--red)">✗ Local only</td><td style="text-align:center;color:var(--accent)">✓</td><td style="text-align:center;color:var(--accent)">✓</td><td style="text-align:center;color:var(--green)">✓</td></tr>
           <tr><td>Shared budgets</td><td style="text-align:center;color:var(--red)">✗</td><td style="text-align:center;color:var(--accent)">✓</td><td style="text-align:center;color:var(--accent)">✓</td><td style="text-align:center;color:var(--green)">✓</td></tr>
@@ -924,43 +924,43 @@ input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent);cursor:po
 
 <!-- FEATURE SHOWCASE MODAL -->
 <div id="showcase-modal" style="display:none;position:fixed;inset:0;background:rgba(10,14,28,.75);backdrop-filter:blur(4px);z-index:9995;align-items:center;justify-content:center;padding:20px">
-  <div style="background:var(--surface);border-radius:var(--r);width:100%;max-width:580px;max-height:88vh;display:flex;flex-direction:column;box-shadow:0 24px 80px rgba(0,0,0,.3);overflow:hidden">
-    <div style="background:linear-gradient(135deg,#5b7fe8,#7055d4);padding:22px;text-align:center;flex-shrink:0">
-      <div style="font-size:32px;margin-bottom:6px">💸</div>
-      <div style="font-size:24px;font-weight:800;color:#fff;margin-bottom:6px">Welcome to BudgetFlow</div>
-      <div style="font-size:14px;color:rgba(255,255,255,.85)">Here is everything you can do</div>
+  <div style="background:var(--surface);border-radius:var(--r);width:100%;max-width:640px;max-height:92vh;display:flex;flex-direction:column;box-shadow:0 24px 80px rgba(0,0,0,.3);overflow:hidden">
+    <div style="background:linear-gradient(135deg,#5b7fe8,#7055d4);padding:28px 24px;text-align:center;flex-shrink:0">
+      <div style="font-size:42px;margin-bottom:10px">💸</div>
+      <div style="font-size:28px;font-weight:800;color:#fff;margin-bottom:8px">Welcome to BudgetFlow</div>
+      <div style="font-size:15px;color:rgba(255,255,255,.85)">Here is everything you can do</div>
     </div>
     <div id="showcase-slides" style="flex:1;overflow-y:auto">
-      <div class="showcase-slide" id="ss-0" style="padding:20px">
-        <div style="font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:16px">Core features — free</div>
+      <div class="showcase-slide" id="ss-0" style="padding:24px">
+        <div style="font-size:13px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:18px">Core features — free</div>
         <div style="display:grid;gap:12px">
-          <div style="display:flex;gap:12px"><div style="font-size:22px;flex-shrink:0">📊</div><div><div style="font-size:15px;font-weight:700;margin-bottom:3px">Smart Dashboard</div><div style="font-size:13px;color:var(--text2);line-height:1.6">Remaining balance, free-to-spend, savings progress and commitments at a glance. Privacy mode hides all amounts instantly.</div></div></div>
-          <div style="display:flex;gap:12px"><div style="font-size:22px;flex-shrink:0">🎯</div><div><div style="font-size:14px;font-weight:700;margin-bottom:2px">Savings Goals</div><div style="font-size:13px;color:var(--text2);line-height:1.6">Set a target and deadline — monthly contribution auto-added as a commitment so it is always deducted.</div></div></div>
-          <div style="display:flex;gap:12px"><div style="font-size:22px;flex-shrink:0">🗓️</div><div><div style="font-size:14px;font-weight:700;margin-bottom:2px">Weekly Planner</div><div style="font-size:13px;color:var(--text2);line-height:1.6">Plan expenses before you spend them. Missed items flagged automatically — carry over or delete.</div></div></div>
-          <div style="display:flex;gap:12px"><div style="font-size:22px;flex-shrink:0">🏷️</div><div><div style="font-size:14px;font-weight:700;margin-bottom:2px">Smart Categories</div><div style="font-size:13px;color:var(--text2);line-height:1.6">Type a description — app suggests the category automatically using keyword matching.</div></div></div>
+          <div style="display:flex;gap:12px"><div style="font-size:26px;flex-shrink:0;width:32px;text-align:center">📊</div><div><div style="font-size:16px;font-weight:700;margin-bottom:4px">Smart Dashboard</div><div style="font-size:14px;color:var(--text2);line-height:1.6">Remaining balance, free-to-spend, savings progress and commitments at a glance. Privacy mode hides all amounts instantly.</div></div></div>
+          <div style="display:flex;gap:12px"><div style="font-size:26px;flex-shrink:0;width:32px;text-align:center">🎯</div><div><div style="font-size:14px;font-weight:700;margin-bottom:2px">Savings Goals</div><div style="font-size:14px;color:var(--text2);line-height:1.6">Set a target and deadline — monthly contribution auto-added as a commitment so it is always deducted.</div></div></div>
+          <div style="display:flex;gap:12px"><div style="font-size:26px;flex-shrink:0;width:32px;text-align:center">🗓️</div><div><div style="font-size:14px;font-weight:700;margin-bottom:2px">Weekly Planner</div><div style="font-size:14px;color:var(--text2);line-height:1.6">Plan expenses before you spend them. Missed items flagged automatically — carry over or delete.</div></div></div>
+          <div style="display:flex;gap:12px"><div style="font-size:26px;flex-shrink:0;width:32px;text-align:center">🏷️</div><div><div style="font-size:14px;font-weight:700;margin-bottom:2px">Smart Categories</div><div style="font-size:14px;color:var(--text2);line-height:1.6">Type a description — app suggests the category automatically using keyword matching.</div></div></div>
         </div>
       </div>
       <div class="showcase-slide" id="ss-1" style="display:none;padding:20px">
         <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:14px">AI features — 3 free lifetime scans</div>
         <div style="display:grid;gap:12px">
-          <div style="display:flex;gap:12px"><div style="font-size:22px;flex-shrink:0">🧾</div><div><div style="font-size:14px;font-weight:700;margin-bottom:2px">AI Receipt Scanning</div><div style="font-size:13px;color:var(--text2);line-height:1.6">Point your camera at any receipt — AI reads the merchant, amount and date. Multiple amounts? Pick the right one.</div></div></div>
-          <div style="display:flex;gap:12px"><div style="font-size:22px;flex-shrink:0">📥</div><div><div style="font-size:14px;font-weight:700;margin-bottom:2px">AI Smart Import</div><div style="font-size:13px;color:var(--text2);line-height:1.6">Upload any CSV or Excel bank statement — AI parses every row, suggests categories and flags uncertain items.</div></div></div>
+          <div style="display:flex;gap:12px"><div style="font-size:26px;flex-shrink:0;width:32px;text-align:center">🧾</div><div><div style="font-size:14px;font-weight:700;margin-bottom:2px">AI Receipt Scanning</div><div style="font-size:14px;color:var(--text2);line-height:1.6">Point your camera at any receipt — AI reads the merchant, amount and date. Multiple amounts? Pick the right one.</div></div></div>
+          <div style="display:flex;gap:12px"><div style="font-size:26px;flex-shrink:0;width:32px;text-align:center">📥</div><div><div style="font-size:14px;font-weight:700;margin-bottom:2px">AI Smart Import</div><div style="font-size:14px;color:var(--text2);line-height:1.6">Upload any CSV or Excel bank statement — AI parses every row, suggests categories and flags uncertain items.</div></div></div>
           <div style="background:var(--amber-dim);border:1px solid var(--amber);border-radius:var(--r-sm);padding:10px;margin-top:4px"><div style="font-size:12px;color:var(--amber);font-weight:700;margin-bottom:3px">3 free lifetime scans</div><div style="font-size:12px;color:var(--text2)">Receipts and imports share the same 3-scan pool. Upgrade to Premium for 20-100 scans per period.</div></div>
         </div>
       </div>
       <div class="showcase-slide" id="ss-2" style="display:none;padding:20px">
         <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:14px">Expense reports — Premium</div>
         <div style="display:grid;gap:12px">
-          <div style="display:flex;gap:12px"><div style="font-size:22px;flex-shrink:0">✈️</div><div><div style="font-size:15px;font-weight:700;margin-bottom:3px">Business Trip Tracking</div><div style="font-size:13px;color:var(--text2);line-height:1.6">Create a trip, log every expense with a receipt photo, export a professional PDF to submit to finance. <strong>1 free trial PDF export included</strong> — no Premium needed to try it.</div></div></div>
-          <div style="display:flex;gap:12px"><div style="font-size:22px;flex-shrink:0">📋</div><div><div style="font-size:14px;font-weight:700;margin-bottom:2px">Two PDF styles</div><div style="font-size:13px;color:var(--text2);line-height:1.6">Formal Corporate (signature lines, numbered table) or Clean Modern (colour-coded, branded). Add your company logo to the header.</div></div></div>
-          <div style="display:flex;gap:12px"><div style="font-size:22px;flex-shrink:0">👥</div><div><div style="font-size:14px;font-weight:700;margin-bottom:2px">Shared Budgets</div><div style="font-size:13px;color:var(--text2);line-height:1.6">Share a budget with a partner or family. 8-character invite code — they join and you both track together.</div></div></div>
+          <div style="display:flex;gap:12px"><div style="font-size:26px;flex-shrink:0;width:32px;text-align:center">✈️</div><div><div style="font-size:15px;font-weight:700;margin-bottom:3px">Business Trip Tracking</div><div style="font-size:14px;color:var(--text2);line-height:1.6">Create a trip, log every expense with a receipt photo, export a professional PDF to submit to finance. <strong>1 free trial PDF export included</strong> — no Premium needed to try it.</div></div></div>
+          <div style="display:flex;gap:12px"><div style="font-size:26px;flex-shrink:0;width:32px;text-align:center">📋</div><div><div style="font-size:14px;font-weight:700;margin-bottom:2px">Two PDF styles</div><div style="font-size:14px;color:var(--text2);line-height:1.6">Formal Corporate (signature lines, numbered table) or Clean Modern (colour-coded, branded). Add your company logo to the header.</div></div></div>
+          <div style="display:flex;gap:12px"><div style="font-size:26px;flex-shrink:0;width:32px;text-align:center">👥</div><div><div style="font-size:14px;font-weight:700;margin-bottom:2px">Shared Budgets</div><div style="font-size:14px;color:var(--text2);line-height:1.6">Share a budget with a partner or family. 8-character invite code — they join and you both track together.</div></div></div>
         </div>
       </div>
       <div class="showcase-slide" id="ss-3" style="display:none;padding:20px">
         <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:14px">Go Premium — unlock everything</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
           <div style="background:var(--surface2);border-radius:var(--r-sm);padding:9px;display:flex;gap:7px;align-items:center"><span style="color:var(--green);font-size:14px">✓</span><span style="font-size:12px">More AI scans</span></div>
-          <div style="background:var(--surface2);border-radius:var(--r-sm);padding:9px;display:flex;gap:7px;align-items:center"><span style="color:var(--green);font-size:14px">✓</span><span style="font-size:12px">PDF export</span></div>
+          <div style="background:var(--surface2);border-radius:var(--r-sm);padding:9px;display:flex;gap:7px;align-items:center"><span style="color:var(--green);font-size:14px">✓</span><span style="font-size:12px">Expense report PDF + logo</span></div>
           <div style="background:var(--surface2);border-radius:var(--r-sm);padding:9px;display:flex;gap:7px;align-items:center"><span style="color:var(--green);font-size:14px">✓</span><span style="font-size:12px">Expense report PDF</span></div>
           <div style="background:var(--surface2);border-radius:var(--r-sm);padding:9px;display:flex;gap:7px;align-items:center"><span style="color:var(--green);font-size:14px">✓</span><span style="font-size:12px">Company logo on PDF</span></div>
           <div style="background:var(--surface2);border-radius:var(--r-sm);padding:9px;display:flex;gap:7px;align-items:center"><span style="color:var(--green);font-size:14px">✓</span><span style="font-size:12px">Shared budgets</span></div>
@@ -1298,9 +1298,9 @@ const WSTEPS=[
   {title:'Welcome to BudgetFlow 👋',sub:"Let's set you up in a few quick steps. You can change everything later in Settings.",fields:'<div class="fields f2"><div class="field"><label>Your name</label><input id="w-name" placeholder="e.g. Sakr"></div><div class="field"><label>Currency</label><select id="w-currency"><option>AED</option><option>USD</option><option>EUR</option><option>GBP</option><option>EGP</option><option>SAR</option><option>QAR</option><option>KWD</option></select></div></div>'},
   {title:'Your income 💰',sub:'Set your monthly salary and pay day so the cycle dates calculate correctly.',fields:'<div class="fields f2"><div class="field"><label>Monthly salary</label><input type="number" id="w-salary" placeholder="e.g. 25000" min="0"></div><div class="field"><label>Pay day (day of month)</label><input type="number" id="w-payday" value="26" min="1" max="31"></div></div>'},
   {title:'Savings goal 🎯',sub:'The required monthly contribution will be auto-added as a commitment.',fields:'<div class="fields f2"><div class="field"><label>Goal name</label><input id="w-gname" placeholder="e.g. Emergency fund"></div><div class="field"><label>Target date</label><input type="date" id="w-gdate"></div><div class="field"><label>Target amount</label><input type="number" id="w-gtarget" placeholder="e.g. 40000" min="0"></div><div class="field"><label>Already saved</label><input type="number" id="w-gsaved" placeholder="0" min="0"></div></div>'},
-  {title:'Pick your categories 🏷️',sub:'Choose the spending categories you use. You can add more in Settings.',fields:'<div id="w-cat-list" style="display:grid;grid-template-columns:1fr 1fr;gap:8px"></div><div class="notice info" style="margin-top:10px">Savings and your commitment categories will be added automatically.</div>'},
-  {title:'Monthly commitments 🔒',sub:'Add your fixed monthly payments — rent, loans, subscriptions. You can add as many as you need.',fields:'<div id="w-commits-list" style="margin-bottom:10px"></div><div class="fields f2" id="w-commit-form"><div class="field"><label>Name</label><input id="w-cname" placeholder="e.g. Rent, Loan, Netflix"></div><div class="field"><label>Monthly amount</label><input type="number" id="w-camount" placeholder="0" min="0" step="0.01"></div><div class="field"><label>Duration</label><select id="w-cdur"><option value="permanent">Permanent (no end date)</option><option value="timebound">Time-bound (has an end date)</option></select></div><div class="field" id="w-cend-wrap" style="display:none"><label>End date</label><input type="date" id="w-cend"></div></div><button type="button" class="btn sec sm" style="margin-top:8px;width:100%" onclick="addWizardCommit()">+ Add commitment</button><div class="notice info" style="margin-top:8px;font-size:12px">You can skip this step and add commitments later in Settings.</div>'},
-  {title:'Categories (optional) 🏷️',sub:'Would you like to add spending budget limits to your categories? You can always do this later in Settings.',fields:'<div id="w-cats-budget-list" style="margin-bottom:8px"></div><div class="notice info" style="font-size:12px">Budget limits help you track how much you spend in each area. Tap any category to set a monthly budget.</div>'},
+  {title:'Pick your categories 🏷️',sub:'Choose the spending categories you use. You can add custom ones too.',fields:'<div id="w-cat-list" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px"></div><div style="display:flex;gap:8px;margin-bottom:8px"><input id="w-custom-cat" placeholder="Custom category name..." style="flex:1"><button type="button" class="btn sec sm" onclick="addWizardCustomCat()" style="flex-shrink:0;white-space:nowrap">+ Add</button></div><div class="notice info" style="font-size:12px">Savings and commitment categories are added automatically.</div>'},
+  {title:'Category budgets 📊',sub:'Set monthly spending limits for your categories. You can skip and do this later in Settings.',fields:'<div id="w-cats-budget-list" style="margin-bottom:8px"></div><div class="notice info" style="font-size:12px">Budget limits help you track how much you spend in each area.</div>'},
+  {title:'Monthly commitments 🔒',sub:'Add your fixed monthly payments — rent, loans, subscriptions. Add as many as you need.',fields:'<div id="w-commits-list" style="margin-bottom:10px"></div><div class="fields f2" id="w-commit-form"><div class="field"><label>Name</label><input id="w-cname" placeholder="e.g. Rent, Loan, Netflix"></div><div class="field"><label>Monthly amount</label><input type="number" id="w-camount" placeholder="0" min="0" step="0.01"></div><div class="field"><label>Duration</label><select id="w-cdur"><option value="permanent">Permanent (no end date)</option><option value="timebound">Time-bound (has an end date)</option></select></div><div class="field" id="w-cend-wrap" style="display:none"><label>End date</label><input type="date" id="w-cend"></div></div><button type="button" class="btn sec sm" style="margin-top:8px;width:100%" onclick="addWizardCommit()">+ Add commitment</button><div class="notice info" style="margin-top:8px;font-size:12px">You can skip this step and add commitments later in Settings.</div>'},
   {title:'All set! 🎉',sub:"Your BudgetFlow is ready. Your savings commitment has been added automatically.",fields:'<div class="notice g">Setup complete! Head to the dashboard to start tracking. Take a quick tour to learn the key features.</div>'}
 ];
 const DEFAULT_CATS=['Groceries','Transport','Housing','Phone & Internet','Travel','Family Transfer','Misc'];
@@ -1315,18 +1315,19 @@ function buildWizard(){
     document.getElementById('w-cat-list').innerHTML=DEFAULT_CATS.map(name=>'<div onclick="toggleWCat(\''+name+'\',this)" style="padding:10px;border:2px solid '+(wSelectedCats.has(name)?'var(--accent)':'var(--border)')+';border-radius:var(--r-sm);cursor:pointer;text-align:center;font-size:13px;font-weight:600;background:'+(wSelectedCats.has(name)?'var(--accent-dim)':'var(--surface2)')+'">'+name+'</div>').join('');
   }
   if(wStep===4){
+    // Category budgets step - show selected cats with budget inputs
+    wSaveCatSelections(); // ensure categories are built from selections first
+    var wcl=document.getElementById('w-cats-budget-list');
+    if(wcl){
+      var cats2=(S.categories||[]).filter(function(c){return !c.isCommit&&c.name!=='Savings';});
+      if(!cats2.length){wcl.innerHTML='<div class="empty" style="font-size:13px;padding:16px 0">No categories selected yet. Go back and pick some categories first.</div>';}
+      else{wcl.innerHTML=cats2.map(function(c){return '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)"><div style="width:12px;height:12px;border-radius:50%;background:'+c.color+';flex-shrink:0"></div><span style="flex:1;font-size:14px;font-weight:500">'+c.name+'</span><input type="number" id="wbgt-'+c.id+'" placeholder="e.g. 500" value="'+(c.budget||'')+'" min="0" step="10" style="width:110px;text-align:right"><span style="font-size:12px;color:var(--text3);white-space:nowrap">'+S.currency+'/mo</span></div>';}).join('');}
+    }
+  }
+  if(wStep===5){
     const sel=document.getElementById('w-cdur');
     if(sel)sel.onchange=function(){document.getElementById('w-cend-wrap').style.display=this.value==='timebound'?'':'none';};
     renderWizardCommits();
-  }
-  if(wStep===5){
-    // Show categories with budget inputs
-    var wcl=document.getElementById('w-cats-budget-list');
-    if(wcl){
-      var cats=S.categories.filter(function(c){return !c.isCommit&&c.name!=='Savings';});
-      if(!cats.length){wcl.innerHTML='<div class="empty" style="font-size:13px">No spending categories added yet. Go back to step 3 to add some, or skip this step.</div>';}
-      else{wcl.innerHTML=cats.map(function(c){return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)"><div style="width:12px;height:12px;border-radius:50%;background:'+c.color+';flex-shrink:0"></div><span style="flex:1;font-size:13px;font-weight:500">'+c.name+'</span><input type="number" id="wbgt-'+c.id+'" placeholder="Budget (optional)" value="'+(c.budget||'')+'" min="0" step="1" style="width:110px;text-align:right"><span style="font-size:12px;color:var(--text3)">'+S.currency+'/mo</span></div>';}).join('');}
-    }
   }
   try{
     if(document.getElementById('w-name'))document.getElementById('w-name').value=S.name||'';
@@ -1342,6 +1343,43 @@ function buildWizard(){
 function toggleWCat(name,el){
   if(wSelectedCats.has(name)){wSelectedCats.delete(name);el.style.border='2px solid var(--border)';el.style.background='var(--surface2)';}
   else{wSelectedCats.add(name);el.style.border='2px solid var(--accent)';el.style.background='var(--accent-dim)';}
+}
+function wSaveCatSelections(){
+  // Build categories from selections if not already done
+  if(wSelectedCats.size>0&&S.categories.filter(function(c){return !c.isCommit&&c.name!=='Savings';}).length===0){
+    S.categories=[];
+    var i=0;
+    wSelectedCats.forEach(function(name){
+      var col=PRESETS[i%PRESETS.length];
+      DEF_CAT_COLORS['wcat'+i]=col;
+      S.categories.push({id:'cat'+Date.now()+i,name:name,color:col,budget:0,isCommit:false,endDate:'',defaultColor:col});
+      i++;
+    });
+    if(!S.categories.find(function(c){return c.name==='Savings';}))
+      S.categories.push({id:'cat-savings',name:'Savings',color:'#1fa870',budget:0,isCommit:false,endDate:'',defaultColor:'#1fa870'});
+  }
+}
+function addWizardCustomCat(){
+  var inp=document.getElementById('w-custom-cat');
+  var name=inp?inp.value.trim():'';
+  if(!name){showToast('Enter a category name.');return;}
+  if(wSelectedCats.has(name)){showToast('Already added.');return;}
+  wSelectedCats.add(name);
+  if(inp)inp.value='';
+  // Re-render cat list
+  var list=document.getElementById('w-cat-list');
+  if(list){
+    DEFAULT_CATS.forEach(function(n){
+      // already rendered
+    });
+    // Add new custom item
+    var div=document.createElement('div');
+    div.textContent=name;
+    div.style.cssText='padding:10px;border:2px solid var(--accent);border-radius:var(--r-sm);cursor:pointer;text-align:center;font-size:13px;font-weight:600;background:var(--accent-dim)';
+    div.onclick=function(){toggleWCat(name,this);};
+    list.appendChild(div);
+  }
+  showToast(name+' added!');
 }
 function renderWizardCommits(){
   var list=document.getElementById('w-commits-list');
@@ -1386,30 +1424,27 @@ function wSave(){
       [...wSelectedCats].forEach((name,i)=>{const col=PRESETS[i%PRESETS.length];DEF_CAT_COLORS['wcat'+i]=col;S.categories.push({id:'cat'+Date.now()+i,name,color:col,budget:0,isCommit:false,endDate:'',defaultColor:col});});
       if(!S.categories.find(c=>c.name==='Savings'))S.categories.push({id:'cat-savings',name:'Savings',color:'#1fa870',budget:0,isCommit:false,endDate:'',defaultColor:'#1fa870'});
     }
+    // step 4 handled above
+    // Categories budget step (now step 4)
     if(wStep===4){
-      // Save any uncommitted entry in the form
-      var cname=document.getElementById('w-cname')?.value.trim();
-      var camt=parseFloat(document.getElementById('w-camount')?.value)||0;
-      var cdur=document.getElementById('w-cdur')?.value||'permanent';
-      var cend=document.getElementById('w-cend')?.value||'';
-      if(cname&&camt>0){
-        wCommits.push({name:cname,amount:camt,type:cdur==='permanent'?'Permanent':'Temporary',end:cdur==='timebound'?cend:''});
-      }
-      // Apply all wizard commits
-      S.commitments=S.commitments.filter(c=>c.isSavings);
+      (S.categories||[]).forEach(function(cat){
+        var inp=document.getElementById('wbgt-'+cat.id);
+        if(inp&&inp.value!==''){cat.budget=parseFloat(inp.value)||0;}
+      });
+    }
+    // Commits step (now step 5)
+    if(wStep===5){
+      var cname5=document.getElementById('w-cname')?.value.trim();
+      var camt5=parseFloat(document.getElementById('w-camount')?.value)||0;
+      var cdur5=document.getElementById('w-cdur')?.value||'permanent';
+      var cend5=document.getElementById('w-cend')?.value||'';
+      if(cname5&&camt5>0){wCommits.push({name:cname5,amount:camt5,type:cdur5==='permanent'?'Permanent':'Temporary',end:cdur5==='timebound'?cend5:''});}
+      S.commitments=S.commitments.filter(function(c){return c.isSavings;});
       wCommits.forEach(function(wc,i){
         if(!getCatN(wc.name)){var col=PRESETS[(S.categories.length)%PRESETS.length];S.categories.push({id:'cat'+Date.now()+i,name:wc.name,color:col,budget:wc.amount,isCommit:true,endDate:wc.end,defaultColor:col});}
         S.commitments.push({id:'wc'+Date.now()+i,name:wc.name,amount:wc.amount,type:wc.type,start:'',end:wc.end,isSavings:false});
       });
       syncSavingsCommit();
-    }
-    // Categories budget step
-    if(wStep===5){
-      // Save any budget inputs
-      (S.categories||[]).forEach(function(cat){
-        var inp=document.getElementById('wbgt-'+cat.id);
-        if(inp&&inp.value){cat.budget=parseFloat(inp.value)||0;}
-      });
     }
   }catch(e){console.error(e);}
   persist();
@@ -1820,7 +1855,7 @@ function expXLSX(){const wb=XLSX.utils.book_new();const td=[['Date','Description
 function expCSV(){const rows=[['Date','Description','Category','Amount'],...S.transactions.map(t=>[t.date,'"'+t.desc+'"',getCat(t.catId)?.name||'?',t.amount])];dl('BudgetFlow_'+today()+'.csv','text/csv',rows.map(r=>r.join(',')).join('\n'));showToast('CSV exported');}
 function expJSON(){dl('BudgetFlow_backup_'+today()+'.json','application/json',JSON.stringify(S,null,2));showToast('Backup exported');}
 async function expPDF(){
-  if(!isPremium()){showToast('PDF export is a Premium feature.');goTo('upgrade');return;}
+  // PDF export is now free for all users
   showToast('Generating PDF...');
   try{
     const{jsPDF}=window.jspdf;const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
@@ -2069,7 +2104,7 @@ function updateUpgradeUI(){
     if(cards)cards.style.display='none';
   }else{
     var left=aiScansLeft();
-    el.innerHTML='<div class="notice a"><strong>Free plan</strong> · '+left+' AI scan'+(left===1?'':'s')+' remaining this month. Upgrade for unlimited access.</div>';
+    el.innerHTML='<div class="notice a"><strong>Free plan</strong> · <strong>'+left+' of 3 lifetime AI scan'+(left===1?'':'s')+'</strong> remaining (receipts + imports combined). <span style="color:var(--accent);cursor:pointer;text-decoration:underline" onclick="goTo(\'upgrade\')">Upgrade for more.</span></div>';
   }
 }
 
