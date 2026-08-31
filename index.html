@@ -1247,6 +1247,9 @@ function onSignIn(user){
   loadUserProfile();
   if(!S.wizardDone){wStep=0;document.getElementById('wizard').style.display='flex';buildWizard();}
   renderAll();
+  // Load transactions and trips from Supabase in background
+  setTimeout(loadTransactionsFromSupabase, 1500);
+  setTimeout(loadTripsFromSupabase, 2000);
   if(S.wizardDone){
     if(!S.showcaseDisabled){setTimeout(showShowcase,700);}
     else if(!S.tourDone){setTimeout(startTour,800);}
@@ -1702,11 +1705,13 @@ function addTx(){
   const date=document.getElementById('fdate').value||today();
   if(!desc||!amt||amt<=0){showToast('Enter a description and valid amount.');return;}
   if(!catId){showToast('Add categories in Settings first.');return;}
-  S.transactions.push({id:Date.now(),desc,amount:amt,catId,memberId,date,_ed:false,flagged:false});
+  var newTx={id:Date.now(),desc,amount:amt,catId,memberId,date,_ed:false,flagged:false,synced:false};
+  S.transactions.push(newTx);
   const c=getCat(catId);if(c&&c.name==='Savings')S.goal.saved=(S.goal.saved||0)+amt;
   document.getElementById('fdesc').value='';document.getElementById('famt').value='';
   document.getElementById('fdesc-suggest')?.classList.remove('open');
   persist();showToast('Expense added');renderAll();
+  pushTxToSupabase(newTx);
 }
 function delTx(id){const t=S.transactions.find(t=>t.id===id);if(!t)return;const c=getCat(t.catId);if(c&&c.name==='Savings')S.goal.saved=Math.max(0,(S.goal.saved||0)-t.amount);S.transactions=S.transactions.filter(t=>t.id!==id);persist();renderAll();}
 function edTx(id){S.transactions.forEach(t=>t._ed=t.id===id);rExpenses();}
@@ -2181,6 +2186,76 @@ if(window.location.search.includes('cancelled=1')){
   },500);
 }
 
+// SUPABASE TRANSACTION SYNC
+var txSyncEnabled = false; // enabled after user loads
+
+async function loadTransactionsFromSupabase(){
+  if(!currentUser||!sb)return;
+  try{
+    var r = await sb.from('transactions')
+      .select('*')
+      .eq('user_id', currentUser.id)
+      .order('date', {ascending:false})
+      .limit(1000);
+    if(r.error){console.warn('TX load error:',r.error);return;}
+    if(!r.data||!r.data.length)return;
+    // Map Supabase rows to local format
+    var remote = r.data.map(function(row){
+      return {
+        id: row.id,
+        desc: row.description,
+        amount: parseFloat(row.amount),
+        catId: row.category_id,
+        memberId: row.member_id||'me',
+        date: row.date,
+        _ed: false,
+        flagged: row.flagged||false,
+        receipt_url: row.receipt_url||null,
+        synced: true
+      };
+    });
+    // Merge: remote wins for synced records, keep local unsynced ones
+    var localUnsynced = (S.transactions||[]).filter(function(t){return !t.synced;});
+    S.transactions = remote;
+    // Push any unsynced local ones up
+    for(var i=0;i<localUnsynced.length;i++){
+      var t = localUnsynced[i];
+      await pushTxToSupabase(t);
+    }
+    txSyncEnabled = true;
+    persist();
+    renderAll();
+    console.log('Loaded '+remote.length+' transactions from Supabase');
+  }catch(e){console.warn('loadTransactionsFromSupabase failed:',e);}
+}
+
+async function pushTxToSupabase(tx){
+  if(!currentUser||!sb)return;
+  try{
+    var row = {
+      id: String(tx.id),
+      user_id: currentUser.id,
+      description: tx.desc,
+      amount: tx.amount,
+      category_id: tx.catId,
+      member_id: tx.memberId||'me',
+      date: tx.date,
+      flagged: tx.flagged||false,
+      receipt_url: tx.receipt_url||null
+    };
+    var r = await sb.from('transactions').upsert(row, {onConflict:'id'});
+    if(r.error)console.warn('pushTx error:',r.error);
+    else tx.synced = true;
+  }catch(e){console.warn('pushTxToSupabase failed:',e);}
+}
+
+async function deleteTxFromSupabase(id){
+  if(!currentUser||!sb)return;
+  try{
+    await sb.from('transactions').delete().eq('id', String(id)).eq('user_id', currentUser.id);
+  }catch(e){console.warn('deleteTx error:',e);}
+}
+
 // EXPENSE REPORTS / TRIPS
 var trips = [];
 var currentTripId = null;
@@ -2195,10 +2270,74 @@ const TRIP_CATS = {
 };
 
 function loadTrips(){
+  // Local fallback while Supabase loads
   try{var t=localStorage.getItem('bf_trips');if(t)trips=JSON.parse(t);}catch(e){trips=[];}
 }
-function saveTrips(){localStorage.setItem('bf_trips',JSON.stringify(trips));}
+function saveTrips(){
+  localStorage.setItem('bf_trips',JSON.stringify(trips));
+  // Also persist to Supabase if signed in
+  if(currentUser)syncTripsToSupabase();
+}
 loadTrips();
+
+async function loadTripsFromSupabase(){
+  if(!currentUser||!sb)return;
+  try{
+    var r = await sb.from('expense_trips')
+      .select('*')
+      .eq('user_id',currentUser.id)
+      .order('created_at',{ascending:false});
+    if(r.error){console.warn('Trips load error:',r.error);return;}
+    if(!r.data||!r.data.length)return;
+    trips = r.data.map(function(row){
+      var exps=[];
+      try{exps=typeof row.expenses==='string'?JSON.parse(row.expenses):(row.expenses||[]);}catch(e){}
+      return {
+        id:row.id,
+        name:row.name,
+        dest:row.destination||'',
+        start:row.start_date||'',
+        end:row.end_date||'',
+        currency:row.currency||'AED',
+        perdiem:row.per_diem||0,
+        purpose:row.purpose||'',
+        expenses:exps,
+        createdAt:row.created_at
+      };
+    });
+    localStorage.setItem('bf_trips',JSON.stringify(trips));
+    rTrips();
+    console.log('Loaded '+trips.length+' trips from Supabase');
+  }catch(e){console.warn('loadTripsFromSupabase failed:',e);}
+}
+
+async function syncTripsToSupabase(){
+  if(!currentUser||!sb)return;
+  try{
+    var rows = trips.map(function(t){
+      return {
+        id: String(t.id),
+        user_id: currentUser.id,
+        name: t.name,
+        destination: t.dest||'',
+        start_date: t.start||null,
+        end_date: t.end||null,
+        currency: t.currency||'AED',
+        per_diem: t.perdiem||0,
+        purpose: t.purpose||'',
+        expenses: JSON.stringify(t.expenses||[])
+      };
+    });
+    if(!rows.length)return;
+    await sb.from('expense_trips').upsert(rows,{onConflict:'id'});
+  }catch(e){console.warn('syncTripsToSupabase failed:',e);}
+}
+
+async function deleteTripFromSupabase(id){
+  if(!currentUser||!sb)return;
+  try{await sb.from('expense_trips').delete().eq('id',String(id)).eq('user_id',currentUser.id);}
+  catch(e){console.warn('deleteTripFromSupabase:',e);}
+}
 
 function showNewTripForm(){
   var f=document.getElementById('new-trip-form');
@@ -2335,7 +2474,7 @@ function deleteTrip(){
 }
 
 function deleteTripById(id){
-  trips=trips.filter(t=>t.id!==id);saveTrips();rTrips();showToast('Trip deleted');
+  trips=trips.filter(t=>t.id!==id);saveTrips();rTrips();showToast('Trip deleted');deleteTripFromSupabase(id);
 }
 
 function viewReceipt(expId){
@@ -2858,13 +2997,11 @@ async function sendChatMsg(){
     chatHistory.slice(-4).forEach(function(h){
       if(h.role !== 'bot' || h.text !== msg) messages.push({role: h.role==='bot'?'assistant':'user', content: h.text});
     });
-    var r = await fetch('https://api.anthropic.com/v1/messages', {
+    var r = await fetch('/api/support', {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
       body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 400,
-        system: 'You are the BudgetFlow in-app support assistant. BudgetFlow is a personal budget tracking app with features: dashboard, expenses & receipts, AI receipt scanning, weekly tracker, planner, savings plan, shared budgets (premium), expense reports for business trips (premium), import/export, and settings. Free tier: 3 lifetime AI scans, 3 months history, 1 goal. Premium: $2.99/week, $4.99/month, $39.99/year — unlocks unlimited AI scans, PDF export, shared budgets, expense report PDFs, unlimited history. Be helpful, concise, and friendly. Answer in 2-4 sentences max. If you cannot help, suggest emailing support@budgetflow.app.',
+        system: 'You are the BudgetFlow in-app support assistant. BudgetFlow is a personal budget tracking app. Features: dashboard, expenses, AI receipt scanning, weekly tracker, planner, savings plan, shared budgets (premium), expense reports (premium), import/export. Free tier: 3 lifetime AI scans, 3 months history, 1 goal. Premium: $2.99/week, $4.99/month, $39.99/year. Be helpful, concise, friendly. Max 3 sentences. If you cannot help, suggest support@budgetflow.app.',
         messages: messages
       })
     });
