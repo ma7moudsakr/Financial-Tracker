@@ -1,59 +1,39 @@
-import Stripe from 'stripe';
-import { createClient } from '@supabase/supabase-js';
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const { createClient } = require('@supabase/supabase-js');
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_ANON_KEY
+);
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') return res.status(405).end();
-  const sig = req.headers['stripe-signature'];
-  let event;
+  res.setHeader('Content-Type', 'application/json');
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+
+  const { sessionId, userId } = req.body || {};
+  if (!sessionId || !userId) return res.status(400).json({ error: 'sessionId and userId required' });
+
   try {
-    const raw = await buffer(req);
-    event = stripe.webhooks.constructEvent(raw, sig, process.env.STRIPE_WEBHOOK_SECRET);
-  } catch (e) {
-    return res.status(400).json({ error: e.message });
-  }
+    const session = await stripe.checkout.sessions.retrieve(sessionId);
 
-  const data = event.data.object;
-
-  if (event.type === 'checkout.session.completed') {
-    const userId = data.metadata?.userId;
-    const subId = data.subscription;
-    if (userId && subId) {
-      await supabase.from('profiles').update({
+    if (session.payment_status === 'paid' || session.status === 'complete') {
+      const { error } = await supabase.from('profiles').update({
         tier: 'premium',
-        stripe_customer_id: data.customer,
-        stripe_subscription_id: subId,
-        subscription_status: 'active'
+        subscription_status: 'active',
+        stripe_customer_id: session.customer,
+        stripe_subscription_id: session.subscription,
       }).eq('id', userId);
+
+      if (error) {
+        console.error('Supabase update error:', error);
+        return res.status(500).json({ error: error.message });
+      }
+      return res.status(200).json({ success: true, tier: 'premium' });
     }
+
+    return res.status(200).json({ success: false, status: session.payment_status });
+  } catch (err) {
+    console.error('verify-session error:', err);
+    return res.status(500).json({ error: err.message });
   }
-
-  if (event.type === 'customer.subscription.deleted') {
-    const customerId = data.customer;
-    await supabase.from('profiles')
-      .update({ tier: 'free', subscription_status: 'cancelled', stripe_subscription_id: null })
-      .eq('stripe_customer_id', customerId);
-  }
-
-  if (event.type === 'customer.subscription.updated') {
-    const customerId = data.customer;
-    const status = data.status === 'active' ? 'active' : 'inactive';
-    const tier = data.status === 'active' ? 'premium' : 'free';
-    await supabase.from('profiles')
-      .update({ tier, subscription_status: status })
-      .eq('stripe_customer_id', customerId);
-  }
-
-  res.status(200).json({ received: true });
-}
-
-async function buffer(req) {
-  return new Promise((resolve, reject) => {
-    const chunks = [];
-    req.on('data', chunk => chunks.push(chunk));
-    req.on('end', () => resolve(Buffer.concat(chunks)));
-    req.on('error', reject);
-  });
 }
