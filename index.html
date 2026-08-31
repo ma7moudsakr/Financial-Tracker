@@ -2171,12 +2171,34 @@ async function cloudSave(){
 // Handle post-payment redirect
 if(window.location.search.includes('upgraded=1')){
   setTimeout(async()=>{
+    // First try verify-session as reliable fallback to webhook
+    var params=new URLSearchParams(window.location.search);
+    var sessionId=params.get('session_id');
+    if(sessionId&&currentUser){
+      try{
+        var vr=await fetch('/api/verify-session',{
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({sessionId,userId:currentUser.id})
+        });
+        var vd=await vr.json();
+        if(vd.success){
+          userProfile.tier='premium';
+          updateUpgradeUI();
+          updateUpgradeNav();
+        }
+      }catch(e){console.warn('verify-session fallback failed:',e);}
+    }
+    // Then reload from Supabase to confirm
     await loadUserProfile();
     showToast('Welcome to Premium! All features are now unlocked.');
     var url=new URL(window.location);url.search='';
     window.history.replaceState({},'',url);
+    updateUpgradeUI();
+    updateUpgradeNav();
+    renderAll();
     goTo('dashboard');
-  },1000);
+  },800);
 }
 if(window.location.search.includes('cancelled=1')){
   setTimeout(()=>{
