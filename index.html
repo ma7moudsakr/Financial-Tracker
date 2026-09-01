@@ -304,8 +304,10 @@ input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent);cursor:po
 .plan-tbl tr.cur td{background:var(--accent-dim);}
 /* RESPONSIVE */
 .blurred-money{filter:blur(5px);user-select:none;cursor:pointer;display:inline-block;transition:filter .2s;}
-@media(max-width:768px){.desk-only{display:none!important;}}
 .blurred-money:hover{filter:none;}
+@media(max-width:768px){.desk-only{display:none!important;}}
+body.privacy-on .money{filter:blur(6px);user-select:none;transition:filter .2s;}
+body.privacy-on .money:hover{filter:none;}
 @media(max-width:768px){
   .sidebar{display:none;}
   .mobile-header{display:flex;}
@@ -436,28 +438,33 @@ input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent);cursor:po
 </div>
 <div class="app">
 <aside class="sidebar">
-  <div class="brand">Budget<span>Flow</span></div>
+  <div class="brand" style="margin-bottom:12px">Budget<span>Flow</span></div>
+  <div class="user-pill" id="user-pill" style="display:none;cursor:pointer;margin-bottom:10px" onclick="goTo('profile')" title="My Profile">
+    <div class="user-avatar" id="user-av">?</div>
+    <div style="flex:1;min-width:0">
+      <div class="user-name" id="user-nm">User</div>
+      <div id="user-tier-badge" style="font-size:9px;font-weight:700;color:var(--amber)"></div>
+    </div>
+    <button class="signout-btn" onclick="event.stopPropagation();signOut()" title="Sign out">↩</button>
+  </div>
   <nav class="nav">
     <button class="nb on" onclick="goTo('dashboard')"><span class="nb-ic">📊</span>Dashboard</button>
     <button class="nb" onclick="goTo('expenses')"><span class="nb-ic">➕</span>Expenses &amp; Receipts</button>
     <button class="nb" onclick="goTo('weekly')"><span class="nb-ic">📅</span>Weekly Tracker</button>
     <button class="nb" onclick="goTo('planner')"><span class="nb-ic">🗓️</span>Planner</button>
     <button class="nb" onclick="goTo('savings')"><span class="nb-ic">🎯</span>Savings Plan</button>
+    <button class="nb" onclick="goTo('trips')"><span class="nb-ic">✈️</span>Expense Reports</button>
     <button class="nb" onclick="goTo('shared')"><span class="nb-ic">👥</span>Shared Budget</button>
     <button class="nb" onclick="goTo('data')"><span class="nb-ic">📤</span>Import &amp; Export</button>
+    <div style="height:1px;background:var(--border);margin:6px 4px"></div>
     <button class="nb" onclick="goTo('profile')"><span class="nb-ic">👤</span>My Profile</button>
-    <button class="nb" onclick="goTo('trips')"><span class="nb-ic">✈️</span>Expense Reports</button>
-    <button class="nb" onclick="goTo('upgrade')" id="upgrade-nav" style="color:var(--amber);border-left-color:var(--amber)"><span class="nb-ic">⭐</span>Go Premium</button>
+    <button class="nb" id="upgrade-nav" onclick="goTo('upgrade')" style="color:var(--amber)"><span class="nb-ic">⭐</span>Go Premium</button>
     <button class="nb" onclick="goTo('settings')"><span class="nb-ic">⚙️</span>Settings</button>
   </nav>
   <div class="sb-foot">
-    <div class="user-pill" id="user-pill" style="display:none;cursor:pointer" onclick="goTo('profile')" title="My Profile">
-      <div class="user-avatar" id="user-av">?</div>
-      <div style="flex:1;min-width:0"><div class="user-name" id="user-nm">User</div><div id="user-tier-badge" style="font-size:9px;font-weight:700;color:var(--amber)"></div></div>
-      <button class="signout-btn" onclick="signOut()" title="Sign out">↩</button>
-    </div>
-    <p id="cpill"></p>
-    <p style="margin-top:6px"><button class="btn sec" style="font-size:11px;padding:4px 8px;width:100%" onclick="showWizard()">⚙️ Setup wizard</button></p>
+    <p id="cpill" style="margin-bottom:6px;font-size:11px;color:var(--text3)"></p>
+    <button class="btn sec" style="font-size:11px;padding:4px 8px;width:100%;margin-bottom:4px" onclick="toggleHelp()">❓ Help &amp; FAQ</button>
+    <button class="btn sec" style="font-size:11px;padding:4px 8px;width:100%" onclick="showWizard()">⚙️ Setup wizard</button>
   </div>
 </aside>
 
@@ -1235,6 +1242,20 @@ async function signInGoogle(){const{error}=await sb.auth.signInWithOAuth({provid
 async function signOut(){await sb.auth.signOut();currentUser=null;document.getElementById('auth-screen').style.display='flex';document.getElementById('user-pill').style.display='none';}
 function onSignIn(user){
   currentUser=user;
+  // Store session start time if not already set
+  var sessionKey = 'bf_session_start_' + user.id;
+  if(!localStorage.getItem(sessionKey)){
+    localStorage.setItem(sessionKey, Date.now().toString());
+  }
+  // Check session age - force re-login after 7 days
+  var sessionStart = parseInt(localStorage.getItem(sessionKey)||'0');
+  var maxAge = 7 * 24 * 60 * 60 * 1000; // 7 days
+  if(sessionStart && Date.now() - sessionStart > maxAge){
+    localStorage.removeItem(sessionKey);
+    sb.auth.signOut();
+    showToast('Your session has expired. Please sign in again.');
+    return;
+  }
   document.getElementById('auth-screen').style.display='none';
   const name=user.user_metadata?.name||user.email?.split('@')[0]||'User';
   if(!S.name)S.name=name;
@@ -2861,7 +2882,12 @@ function togglePrivacy(){
   var lb=document.getElementById('privacy-lbl');
   if(ic)ic.textContent=privacyOn?'\uD83D\uDE48':'\uD83D\uDC41\uFE0F';
   if(lb)lb.textContent=privacyOn?'Show':'Hide';
-  rDash();
+  document.body.classList.toggle('privacy-on', privacyOn);
+  // Also update mobile hide button
+  var mic=document.getElementById('mob-privacy-ic');
+  var mlb=document.getElementById('mob-privacy-lbl');
+  if(mic)mic.textContent=privacyOn?'\uD83D\uDE48':'\uD83D\uDC41\uFE0F';
+  if(mlb)mlb.textContent=privacyOn?'Show':'Hide';
 }
 function pFmt(n,d){
   d=d||0;
