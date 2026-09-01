@@ -308,6 +308,21 @@ input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent);cursor:po
 @media(max-width:768px){.desk-only{display:none!important;}}
 body.privacy-on .money{filter:blur(6px);user-select:none;transition:filter .2s;}
 body.privacy-on .money:hover{filter:none;}
+body.privacy-on .kpi b{filter:blur(6px);user-select:none;transition:filter .2s;}
+body.privacy-on .kpi b:hover{filter:none;}
+body.privacy-on .kpi small{filter:blur(5px);user-select:none;}
+body.privacy-on .kpi small:hover{filter:none;}
+body.privacy-on .ci-amt,.privacy-on .commit-amt{filter:blur(6px);user-select:none;transition:filter .2s;}
+body.privacy-on .txa{filter:blur(6px);user-select:none;transition:filter .2s;}
+body.privacy-on .txa:hover{filter:none;}
+body.privacy-on .camt{filter:blur(6px);user-select:none;transition:filter .2s;}
+body.privacy-on .camt:hover{filter:none;}
+body.privacy-on #gsaved-lbl{filter:blur(6px);user-select:none;transition:filter .2s;}
+body.privacy-on #gsaved-lbl:hover{filter:none;}
+body.privacy-on .prog-row span{filter:blur(6px);user-select:none;transition:filter .2s;}
+body.privacy-on .prog-row span:hover{filter:none;}
+body.privacy-on .sb-foot #cpill{filter:blur(5px);}
+body.privacy-on .user-pill .user-name{filter:blur(5px);}
 @media(max-width:768px){
   .sidebar{display:none;}
   .mobile-header{display:flex;}
@@ -1481,7 +1496,7 @@ function showWizard(){wStep=0;document.getElementById('wizard').style.display='f
 
 // TOUR
 const TOUR_STEPS=[
-  {pg:'dashboard',title:'📊 Dashboard',text:'Your financial command centre. KPI cards show Remaining, Free to Spend, Commitments and Savings. Tap the ☰ menu to access all sections. Use the Hide button to blur amounts for privacy.'},
+  {pg:'dashboard',title:'📊 Dashboard',text:'Your financial command centre. KPI cards show Remaining, Free to Spend, Commitments and Savings. Use the sidebar to navigate all sections. Click Hide to blur all amounts for privacy.'},
   {pg:'expenses',title:'➕ Expenses & Receipts',text:'Log expenses manually or scan a receipt — AI reads the merchant, amount and date automatically. You get 3 free lifetime AI scans to try it. Mark commitments paid directly from the checklist.'},
   {pg:'trips',title:'✈️ Expense Reports',text:'Going on a business trip? Create a report, add each expense with a receipt photo, then export a professional PDF with your company logo — Formal Corporate or Clean Modern style. Premium feature.'},
   {pg:'savings',title:'🎯 Savings Plan',text:'Set a savings goal and deadline. BudgetFlow calculates your required monthly contribution and auto-adds it as a commitment so it is always deducted from your free-to-spend amount.'},
@@ -2878,22 +2893,13 @@ function togglePwdVis(inputId,icon){
 var privacyOn=false;
 function togglePrivacy(){
   privacyOn=!privacyOn;
-  var ic=document.getElementById('privacy-ic');
-  var lb=document.getElementById('privacy-lbl');
-  if(ic)ic.textContent=privacyOn?'\uD83D\uDE48':'\uD83D\uDC41\uFE0F';
-  if(lb)lb.textContent=privacyOn?'Show':'Hide';
-  document.body.classList.toggle('privacy-on', privacyOn);
-  // Also update mobile hide button
-  var mic=document.getElementById('mob-privacy-ic');
-  var mlb=document.getElementById('mob-privacy-lbl');
-  if(mic)mic.textContent=privacyOn?'\uD83D\uDE48':'\uD83D\uDC41\uFE0F';
-  if(mlb)mlb.textContent=privacyOn?'Show':'Hide';
+  document.body.classList.toggle('privacy-on',privacyOn);
+  var ids=['privacy-ic','mob-privacy-ic'];
+  ids.forEach(function(id){var el=document.getElementById(id);if(el)el.textContent=privacyOn?'\uD83D\uDE48':'\uD83D\uDC41\uFE0F';});
+  var lbls=['privacy-lbl','mob-privacy-lbl'];
+  lbls.forEach(function(id){var el=document.getElementById(id);if(el)el.textContent=privacyOn?'Show':'Hide';});
 }
-function pFmt(n,d){
-  d=d||0;
-  if(!privacyOn)return fmt(n,d);
-  return '<span class="blurred-money">'+fmt(n,d)+'</span>';
-}
+function pFmt(n,d){d=d||0;return '<span class="money">'+fmt(n,d)+'</span>';}
 
 // FAQ DATA
 var FAQ_DATA = [
